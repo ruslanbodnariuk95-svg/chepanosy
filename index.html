@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0b1026">
-<title>The Legend of Yura America — ЧЕПОНОСИ 3D v4</title>
+<title>The Legend of Yura America — ЧЕПОНОСИ 3D v5</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none;font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;color:#fff;-webkit-tap-highlight-color:transparent}
@@ -1434,8 +1434,8 @@ Object.assign(SFX,{
  crate(x,y){if(!this.ok())return;const t=this.ctx.currentTime,s=this.sp(x,y),out=this.bus(0.7*s.v,s.p,0.2);for(let i=0;i<5;i++)this.burst(out,t+i*0.03,'bandpass',rand(500,1500),3,0.001,0.8,0.06);this.thud(x,y);},
  buy(){if(!this.ok())return;this.coin();setTimeout(()=>this.coin(),110);},
 });
-const DIFF={dmg:[0.6,1,1.45],hp:[0.75,1,1.25],rew:[0.8,1,1.3]};
-const dI=()=>clamp(save.diff===undefined?1:save.diff,0,2);
+const DIFF={dmg:[0.6,1,1.45,2.1],hp:[0.75,1,1.25,1.7],rew:[0.8,1,1.3,1.8]};
+const dI=()=>clamp(save.diff===undefined?1:save.diff,0,3);
 const hurtPlayerV1=hurtPlayer;hurtPlayer=function(a,silent){hurtPlayerV1(a*DIFF.dmg[dI()],silent);};
 const spawnZombieV1=spawnZombie;spawnZombie=function(type,x,y){const z=spawnZombieV1(type,x,y);z.hp=z.maxHp=Math.round(z.maxHp*DIFF.hp[dI()]);return z;};
 const WBASE=WEAPONS.map(w=>w.dmg);
@@ -1959,9 +1959,10 @@ function syncGame(dt){
  const asp=W/H,tf=Math.tan(camera.fov*Math.PI/360);let CD=clamp(Math.max(14/(2*tf*asp),18),18,36);
  const sh=g.shake?0.04*g.shake:0;
  const cx=p.x*U,cz=p.y*U;const tx=cx+rand(-sh,sh),tz=cz-1.2+rand(-sh,sh);
- const el=0.95;const want=new THREE.Vector3(tx,CD*Math.sin(el),tz+CD*Math.cos(el));
+ const _ru=g.zombies.find(z=>z.type==='rumin'&&!z.dead&&dist(z.x,z.y,p.x,p.y)<900);g.camB=(g.camB||0)+((_ru?1:0)-(g.camB||0))*Math.min(1,dt*2);CD*=1+0.75*g.camB;if(g.car&&g.car.in)CD*=1.3;
+ const el=0.95-0.22*g.camB;const want=new THREE.Vector3(tx,CD*Math.sin(el),tz+CD*Math.cos(el));
  if(!g.camInit){camera.position.copy(want);g.camInit=true;}else camera.position.lerp(want,1-Math.exp(-dt*6));
- camera.lookAt(tx,0.8,tz);
+ camera.lookAt(tx,0.8+5*(g.camB||0),tz-3*(g.camB||0));
  camPost(dt);
 }
 // ---------- overlay (2D canvas on top) ----------
@@ -1988,7 +1989,7 @@ function drawOverlay(){
   if(s.x<m||s.x>W-m||s.y<m+100||s.y>H-m||s.z>1){let a=Math.atan2(s.y-H/2,s.x-W/2);if(s.z>1)a+=Math.PI;const ex=clamp(W/2+Math.cos(a)*W,m,W-m),ey=clamp(H/2+Math.sin(a)*H,m+110,H-m);
    c.save();c.translate(ex,ey);c.rotate(a);c.fillStyle='#ffd23f';c.strokeStyle='#000';c.lineWidth=3;c.beginPath();c.moveTo(18,0);c.lineTo(-10,-13);c.lineTo(-4,0);c.lineTo(-10,13);c.closePath();c.stroke();c.fill();c.restore();
    c.fillStyle='#fff';c.font='bold 12px sans-serif';c.fillText(Math.round(dist(p.x,p.y,tg.x,tg.y)/10)+' '+t('m'),ex-Math.cos(a)*30,ey-Math.sin(a)*30);}}
- const boss=g.zombies.find(z=>z.big&&!z.dead);
+ const boss=g.zombies.find(z=>z.big&&!z.dead&&z.type!=='rumin');
  if(boss){const bw=Math.min(W*0.8,420),bx=(W-bw)/2,by=W>H?H-30:132;c.fillStyle='#000';rr(c,bx-3,by-3,bw+6,20,8);c.fill();c.fillStyle='#600';c.fillRect(bx,by,bw,14);c.fillStyle='#e53935';c.fillRect(bx,by,bw*boss.hp/boss.maxHp,14);
   c.fillStyle='#fff';c.font='bold 12px sans-serif';c.fillText(t((typeof BOSSNAME!=='undefined'&&BOSSNAME[boss.type])||'boss_plyash'),W/2,by+8);}
  if(joy.active){c.globalAlpha=0.5;c.fillStyle='#000';c.beginPath();c.arc(joy.bx,joy.by,58,0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=3;c.stroke();c.globalAlpha=0.85;c.fillStyle='#ddd';c.beginPath();c.arc(joy.x,joy.y,26,0,7);c.fill();c.globalAlpha=1;}
@@ -2099,7 +2100,7 @@ function sync2(dt){const g=G,R=g.r,p=g.player;
  for(const b of g.level.buildings)if(b.kind==='tower'&&b.g&&b.collapse!==undefined){const k=clamp(b.collapse,0,1),e=k*k;b.g.position.y=-e*(b.towerH||118)*0.92;b.g.rotation.z=e*0.18;b.g.rotation.x=e*0.08;}
  if(R.landT&&g.landGone)R.landT.visible=false;
  // flags wave
- if(R.flags)for(const f of R.flags){const fl=f.userData.flag;fl.rotation.y=Math.sin(T*2+f.position.x)*0.25;}
+ if(R.flags)for(const f of R.flags){const fl=f.userData.flag;if(fl)fl.rotation.y=Math.sin(T*2+f.position.x)*0.25;}
  if(R.fogFar&&G.scene.fog){G.scene.fog.far=R.fogFar;}
  // formicarium glow when ants ready
  if(p.vis.formi)p.vis.formi.visible=true;
@@ -2455,7 +2456,7 @@ document.querySelectorAll('.lng').forEach(b=>b.addEventListener('click',()=>{SFX
 btn('bSound',()=>{SFX.setSound(!save.sound);sndLabel();});btn('bSound2',()=>{SFX.setSound(!save.sound);sndLabel();});
 btn('bRadio',()=>{save.radio=!save.radio;persist();setLabels();});btn('bRadio2',()=>{save.radio=!save.radio;persist();setLabels();});
 btn('bQual',()=>setQuality(!QUAL.low));btn('bQual2',()=>setQuality(!QUAL.low));
-btn('bDiff',()=>{save.diff=(dI()+1)%3;persist();setLabels();});
+btn('bDiff',()=>{save.diff=(dI()+1)%4;persist();setLabels();});
 btn('bStreetBack',()=>showScreen('menu'));
 btn('bReset',()=>{if(confirm(t('reset_q'))){Object.assign(save,{unlocked:1,done:[],money:0,crossed:false,finished:false,kit:{},owned:{},up:{},cp:{},dog:false,earned:0});persist();ST=null;showScreen('street');}});
 btn('bPlay',()=>startMission(dlgMission));btn('bDlgBack',()=>showScreen('street'));btn('bShopBack',()=>showScreen('street'));
@@ -2750,7 +2751,7 @@ window.v3Showcase=function(list,cam){if(!list){window.SHOWCASE=null;return 0;}co
  sc.add(new THREE.HemisphereLight(0xe8f0ff,0x4a4a38,1.0));const dl=new THREE.DirectionalLight(0xfff0dc,2.4);dl.position.set(3,7,6);dl.castShadow=!lowQ();dl.shadow.mapSize.set(1024,1024);dl.shadow.radius=3;const c=dl.shadow.camera;c.left=-6;c.right=6;c.top=6;c.bottom=-6;sc.add(dl);
  const gt=dirtTex().clone();gt.needsUpdate=true;gt.repeat.set(3,3);const gnd=mesh(new THREE.PlaneGeometry(30,30),PBM('#fff',{map:gt,roughness:1}),0,0,0,sc,false);gnd.rotation.x=-Math.PI/2;gnd.receiveShadow=true;
  const mk={viktor:()=>makeViktor(),alco:()=>makeZombie({type:'walker'}),fat:()=>makeZombie({type:'fat'}),runner:()=>makeZombie({type:'runner'}),thrower:()=>makeZombie({type:'thrower'}),tcc:()=>makeTCC3(),yura:()=>makeYura3(),kendi:()=>makeKendi3(),rumin:()=>makeRumin3(),galya:()=>makeGalya(),boss:()=>makeZombie({type:'boss'})};Object.assign(mk,window.SHOWX||{});
- const n=list.length;list.forEach((k,i)=>{const r=mk[k]();if(r.weapons)for(const w in r.weapons)r.weapons[w].visible=w==='knife';const sc0=r.s||1;r.g.scale.setScalar(Math.min(sc0,1.35));r.g.position.set((i-(n-1)/2)*1.25,0,0);r.g.rotation.y=(i-(n-1)/2)*-0.12;sc.add(r.g);});
+ const n=list.length;list.forEach((k,i)=>{const r=mk[k]();if(r.weapons)for(const w in r.weapons)r.weapons[w].visible=w==='knife';const sc0=r.s||1;r.g.scale.setScalar(r.keepS?sc0:Math.min(sc0,1.35));r.g.position.set((i-(n-1)/2)*1.25,0,0);r.g.rotation.y=(i-(n-1)/2)*-0.12;sc.add(r.g);});
  window.SHOWCASE={sc,cam:cam||[[0,2.0,Math.max(3.2,n*1.3)],[0,1.5,0]]};return n;};
 (function(){const rr=renderer.render;renderer.render=function(sc,cam){const S=window.SHOWCASE;if(S){cam.position.fromArray(S.cam[0]);cam.lookAt(new THREE.Vector3().fromArray(S.cam[1]));renderer.toneMappingExposure=1.0;return rr.call(renderer,S.sc,cam);}return rr.call(renderer,sc,cam);};})();
 
@@ -2766,7 +2767,7 @@ function makeMelnychuk3(){const r=rig({skin:'#d9a07c',hair:'#4a3a2a',hairStyle:'
  r.g.scale.setScalar(1.25);r.s=1.25;return r;}
 function makePasha3(){const r=rig({skin:'#f0c0a0',hair:'#c0501c',hairStyle:'long',beard:'full',beardCol:'#b8481a',browCol:'#b8481a',browTilt:0.32,eyeCol:'#2a5a3a',build:'stocky',blush:'rgba(230,110,90,0.4)',
   top:{kind:'tracksuit',col:'#1a3a6a'},pants:'#1a3a6a',shoes:'#f0f0f0',shoeKind:'sneakers',lace:'#c0501c'});r.g.scale.setScalar(1.25);r.s=1.25;return r;}
-function makeNalysnyk3(){const r=rig({skin:pick(['#e0b090','#d8a888','#e8bc98']),hair:pick(['#2a2420','#4a3a2a']),hairStyle:'short',beard:pick(['stubble',null]),beardCol:'#2a2420',browTilt:0.22,eyeCol:'#2a2a2a',build:'stocky',
+function makeNalysnyk3(){const r=rig({skin:pick(['#e0b090','#d8a888','#e8bc98']),hair:pick(['#ff4fb0','#ff6ec7','#f45fd0']),hairStyle:'short',beard:pick(['stubble',null]),beardCol:'#2a2420',browTilt:0.22,eyeCol:'#2a2a2a',build:'stocky',
   top:{kind:'uniform',m:PBM('#c9a55a',{roughness:0.9,side:THREE.DoubleSide})},pantsM:PBM('#5a4a2a',{roughness:0.9}),shoes:'#141414',shoeKind:'boots',hat:{kind:'beret',col:'#7a1830',badge:'#e0c040'}});
  mesh(new THREE.CircleGeometry(0.07,16),PBM('#f2c46a',{roughness:0.8}),0.11,0.52,0.25,r.chest,false);mesh(new THREE.CircleGeometry(0.045,14),PBM('#d89a3a',{roughness:0.8}),0.11,0.52,0.253,r.chest,false);
  r.g.scale.setScalar(1.12);r.s=1.12;return r;}
@@ -3303,6 +3304,490 @@ const _ui4=updInv;updInv=function(full){_ui4(full);if(!G||!full)return;const p=G
 // mash input from on-screen buttons while choked
 ['bFire','bBurn'].forEach(id=>{const b=$(id);if(b)b.addEventListener('pointerdown',()=>{if(G&&G.grab)input.mash=true;});});
 window.SHOWX={mel:makeMelnychuk3,pasha:makePasha3,nal:makeNalysnyk3,dashk:()=>{const r=makeDashkevich3();return r;},bohdan:makeBohdan3,lyalyk:makeLyalyk3,vasyl:makeVasyl3,shep:makeShepherdRig,lada:()=>({g:makeLada3()})};
+
+(function(){const A={"uk": {"cont": "Продовжити", "cont_s": "Збережено: {0} ({1}) • {2} щ", "cont_new": "Нова історія Віктора починається тут", "newgame": "Нова гра", "new_q": "Почати нову гру? Прогрес буде стерто.", "howto2": "Як грати", "settings": "Налаштування", "set_vol": "Гучність", "set_radio": "Музика / радіо", "on": "Увімк", "off": "Вимк", "set_q": "Графіка", "q_hi2": "Висока", "q_lo2": "Низька (слабкі телефони)", "set_lang": "Мова", "set_diff": "Складність", "d_easy": "Легко", "d_norm": "Нормально", "d_hard": "Важко", "d_klus": "Клюс Командос", "diff3": "СКЛАДНІСТЬ: КЛЮС КОМАНДОС", "tab_story": "Сюжет", "tab_ctrl": "Управління", "tab_tips": "Поради", "story_html": "<p><b>Чепоноси, Буковина.</b> Віктор — простий хлопець із ножем, ліхтариком і формікарієм бойових мурах. Село захопили алкаші, по вулицях їздять буси ТЦК, а над усім височіє вежа «5 хатки».</p><p>Віктор вирішує: досить. Він звільнить рідне село, допоможе Юрі Америці й бабусі Галі, пройде пригорок, Гордівці, Малинці та Рукшин, полагодить стару копійку Коняка й скине Дашкевича — короля «5 хатки» із замку «Мультимедіа».</p><p>Мета одна — <b>втекти в Румунію</b>. Але на тому боці кордону чекає велетенський <b>Румин</b>, король цукру. Переможи його — і легенда завершиться.</p>", "help_v5": "<li><b>🏃 БІГ / Shift</b> — спринт, витрачає витривалість (синя смужка).</li><li><b>Ховайся</b> біля копиць сіна, дров, дерев і сараїв — ТЦК тебе не побачать.</li><li><b>📜</b> — журнал квестів, <b>🗺</b> — карта світу.</li><li><b>ДІЯ / E</b> — говорити, купувати, сідати в авто.</li>", "tips_html": "<ul><li><b>ТЦК</b> майже невбивні: броня й дубинки. Краще тікай — сховайся й почекай, поки загублять тебе.</li><li>Ящик із <b>🐾</b> у першій місії ховає пса Бровка — він кусає ворогів.</li><li>У <b>Кенді</b> є все: стволи, бита, сокира, аптечки, броня.</li><li>Не бий <b>Василя Баштового</b>. Просто повір.</li><li>Паша Рижий хапає — <b>тисни кнопку</b> якнайшвидше.</li><li>Коктейль Молотова — найкращий друг проти юрби.</li></ul>", "brief": "Брифінг місії", "brief_obj": "Завдання", "bo_0": "Візьми пістолет з ящика біля старту|Розбий ящик з 🐾 — там пес!|Дійди до сільмагу й тримай «ПІДПАЛИТИ»", "bo_1": "Підпали 4 точки біля основи вежі|Знайди Юру Америку й дай йому пляшку|Доведи Юру до Чепоносів", "bo_2": "Знайди бабусю Галю|Захисти її від алкашів|Доведи до автобуса", "bo_3": "Знешкодь 25 чепоносів|Вмикай ліхтарик, щоб засліплювати|Стережись бусів ТЦК", "bo_4": "Протримайся 90 секунд|ТЦК б’ють дубинками — тікай і ховайся|Спринт рятує життя", "bo_5": "Знищ Пляшкаря|Ухиляйся від пляшок|Добий його біля криниці", "bo_6": "Знайди дірку в паркані або переріж сітку|Уникай дронів і ТЦК|Потрібно 1500 щ і поразка Дашкевича", "bo_7": "Переможи велетенського Румина|Тікай від мішків із цукром|Не підходь під биту", "bo_8": "Поговори з Василем Баштовим|Знайди 3 банки наливки|Вилізь на вершину до хреста", "bo_9": "Пройди через Гордівці|Ухиляйся від тарану мопеда|Збий Мельничука", "bo_10": "Знайди Богдана Коняка|Переможи Пашу Рижого (тисни, якщо схопить!)|Поверни ключі", "bo_11": "Дійди до СТО «Лялик»|Принеси колесо, акумулятор, карбюратор (або 400 щ)|Виїдь з Рукшина на копійці", "bo_12": "Доїдь до замку «Мультимедіа»|Скинь Дашкевича (у веселковому плащі)|Приведи Василя до вежі й піднімись до Властеліни", "tip0": "Розбиті ящики дають набої й аптечки.", "tip1": "Недопалки — це чекпоінти.", "tip2": "Мурахи кусають усіх поруч.", "tip3": "Ховайся в сіні, коли ТЦК близько.", "tip4": "Василь продає пляшки по 25 щ.", "tip5": "Броня в Кенді зменшує шкоду.", "wm_title": "Карта світу", "lg_you": "Ти тут", "lg_quest": "Квест", "lg_done": "Пройдено", "lg_lock": "Закрито", "lg_shop": "Крамниця Кенді", "lg_vasyl": "Василь Баштовий", "lg_garage": "СТО «Лялик»", "lg_tower": "Вежа «5 хатки»", "lg_border": "Кордон з Румунією", "b_sprint": "БІГ", "armor_hit": "броня!", "baton_hit": "Дубинкою!", "t_lost_tcc": "ТЦК тебе загубили!", "t_van_chase": "Бус ТЦК женеться за тобою!", "hidden": "Сховався", "bark_t0": "Стій! Документи!", "bark_t1": "Повістка тобі!", "bark_t2": "Куди біжиш, ухилянте?", "bark_t3": "Ану до буса!", "bark_t4": "Ми тебе бачимо!", "bark_t5": "Здоров, Клюс! Підпиши тут!", "bark_lost0": "Де він подівся?", "bark_lost1": "Втік, гад…", "bark_lost2": "Ладно, наступного разу.", "bark_a0": "Маєш цигарку?", "bark_a1": "Дай пару рублів!", "bark_a2": "Здоров, Клюс!", "bark_a3": "Куди йдеш?", "bark_a4": "Що ти хочеш?", "bark_a5": "Ти мене поважаєш?", "bark_a6": "Налий сто грам!", "bark_a7": "Е, малий, стій!", "bark_v0": "Що ти хочеш?", "bark_v1": "Куди йдеш?", "bark_v2": "Здоров, Клюс!", "bark_v3": "Маєш цигарку?", "bark_v4": "Дай пару рублів, до пенсії…", "bark_v5": "Світла знов нема…", "bark_n0": "Здоров, Клюс! Що ти хочеш?", "bark_n1": "О, Вікторе! Заходь!", "bark_n2": "Куди йдеш? Постій!", "bark_n3": "Маєш цигарку? Ні? Ну добре.", "n_vill0": "Дядько Іван", "n_vill1": "Тітка Марія", "n_vill2": "Сусід Степан", "n_vill3": "Дід Петро", "n_vill4": "Кума Оксана", "m13_name": "Хмельницький: другий шанс", "m13_desc": "Ти загинув без збереження — і прокинувся на вулиці Панаса Мирного в Хмельницькому. Пробіжи повз озеро до ПЛАЗИ, де чекає Кенді. Встигнеш — повернешся туди, де впав.", "loc_13": "Хмельницький", "reg_khm": "Хмельницький", "lg_khm": "Хмельницький — другий шанс", "st_pm": "вул. Панаса Мирного", "n_kendi5": "Кенді", "khm_t": "Хмельницький — другий шанс", "khm_body": "<p>Ти загинув, а недопалка-збереження не було… Але доля дає ще один шанс.</p><p>Ти прокидаєшся на <b>вулиці Панаса Мирного</b> в Хмельницькому. Біжи повз <b>озеро</b> до великої білої <b>ПЛАЗИ</b> — там чекає <b>Кенді</b>.</p><p>Злі місцеві женуться за тобою і кидають синьо-жовті прапорці на палицях. Дійдеш до Кенді — повернешся рівно туди, де загинув, і місія продовжиться.</p><p><b>Загинеш і тут — історія почнеться спочатку.</b></p>", "khm_go": "Бігти до ПЛАЗИ", "o_khm0": "Добіжи до Кенді біля ПЛАЗИ ({0} м)", "o_khm1": "Кенді рятує тебе…", "d_ke0": "Кенді: Вікторе! Ти що, з того світу? Хутко сюди!", "d_ke1": "Кенді: Тримай — і назад, туди, де тебе поклали. Не підведи!", "khm_back": "Кенді повернув тебе туди, де ти впав!", "khm_restart": "Ти загинув і в Хмельницькому. Історія починається спочатку…", "w_khm": "Кенді тебе врятував!", "flag_hit": "Прапорцем!", "bark_f0": "Ану стій!", "bark_f1": "Ти звідки такий взявся?", "bark_f2": "Лови прапорця!", "bark_f3": "Куди біжиш, хлопче?", "bark_f4": "Тут тобі не Чепоноси!", "t_swim": "Пливеш! Повільно, але й вони тут не бігають", "b_car": "АВТО", "bo_13": "Біжи вулицею Панаса Мирного|Обійди озеро (або пливи)|Дійди до Кенді біля ПЛАЗИ", "m14_name": "Вежа «Мультимедіа»: Властеліна", "m14_desc": "Нагорі вежі «Мультимедіа» живе королева Властеліна. Вона тримає Юру Америку в клітці й хоче лише одного — Василя Баштового. Піднімися з Василем на 5-й поверх, обміняй його на Юру й виведи Юру до Чепоносів.", "loc_14": "«5 хатка»", "bo_14": "Піднімайся сходами з Василем (5 поверхів)|Віддай Василя Властеліні — отримай Юру|Спустись, дай Юрі пляшку й виведи його", "o_cas2": "Веди Василя до вежі «Мультимедіа» (двері вежі)", "o_kp0": "Піднімайся з Василем нагору: поверх {0}/5", "o_kp1": "Віддай Василя Властеліні", "o_kp2": "Спускайся з Юрою вниз: поверх {0}/5", "o_kp3": "Юра просить пляшку — дай йому", "o_kp4": "Виведи Юру до Чепоносів (вихід внизу)", "floor_n": "Поверх {0}", "act_trade": "ОБМІНЯТИ", "n_vlast": "Властеліна", "n_yura5": "Юра Америка", "t_keep_in": "Входиш у вежу «Мультимедіа»…", "t_vasyl_lost": "Василь відстав — зачекай на нього!", "t_yura_free": "Юру звільнено! Він іде за тобою", "w_keep": "Юра Америка на волі, Василь — у Властеліни. «5 хатка» пройдена!", "d_vl_k0": "Василь: Дашкевича нема… Тепер нагору, до Властеліни. Вона на мене давно чекає.", "d_vl_k1": "Віктор: Веди, Василю. Юру треба витягти.", "d_vl0": "Властеліна: Хто сміє турбувати королеву «Мультимедіа»?", "d_vl1": "Властеліна: О… Василь Баштовий! Нарешті ти привів його мені.", "d_vl2": "Властеліна: Угода є угода. Василь лишається зі мною.", "d_vl3": "Властеліна: А цього американця забирай — він мені всю вежу провонів наливкою.", "d_vl4": "Василь: Не переживай, Вікторе. Тут непогано… і пляшки є.", "d_yu0": "Юра: Віктор! Я знав, що ти прийдеш!", "d_yu1": "Юра: Ох… от тепер я живий. Дякую, брате!", "d_yu2": "Юра: Веди мене додому, в Чепоноси!"}, "ru": {"cont": "Продолжить", "cont_s": "Сохранено: {0} ({1}) • {2}", "cont_new": "История Виктора начинается здесь", "newgame": "Новая игра", "new_q": "Начать новую игру? Прогресс будет стёрт.", "howto2": "Как играть", "settings": "Настройки", "set_vol": "Громкость", "set_radio": "Музыка / радио", "on": "Вкл", "off": "Выкл", "set_q": "Графика", "q_hi2": "Высокая", "q_lo2": "Низкая (слабые телефоны)", "set_lang": "Язык", "set_diff": "Сложность", "d_easy": "Легко", "d_norm": "Нормально", "d_hard": "Тяжело", "d_klus": "Клюс Командос", "diff3": "СЛОЖНОСТЬ: КЛЮС КОМАНДОС", "tab_story": "Сюжет", "tab_ctrl": "Управление", "tab_tips": "Советы", "story_html": "<p><b>Чепоносы, Буковина.</b> Виктор — простой парень с ножом, фонариком и формикарием боевых муравьёв. Село захватили алкаши, по улицам ездят бусы ТЦК, а над всем возвышается башня «5 хатки».</p><p>Виктор решает: хватит. Он освободит родное село, поможет Юре Америке и бабушке Гале, пройдёт пригорок, Гордовцы, Малинцы и Рукшин, починит старую копейку Коняка и свергнет Дашкевича — короля «5 хатки» из замка «Мультимедиа».</p><p>Цель одна — <b>сбежать в Румынию</b>. Но за границей ждёт гигантский <b>Румин</b>, король сахара. Победи его — и легенда завершится.</p>", "help_v5": "<li><b>🏃 БЕГ / Shift</b> — спринт, тратит выносливость (синяя полоска).</li><li><b>Прячься</b> у стогов сена, дров, деревьев и сараев — ТЦК тебя не увидят.</li><li><b>📜</b> — журнал квестов, <b>🗺</b> — карта мира.</li><li><b>ДЕЙСТВИЕ / E</b> — говорить, покупать, садиться в авто.</li>", "tips_html": "<ul><li><b>ТЦК</b> почти неубиваемы: броня и дубинки. Лучше беги — спрячься и подожди, пока потеряют.</li><li>Ящик с <b>🐾</b> в первой миссии прячет пса Бровко — он кусает врагов.</li><li>У <b>Кенди</b> есть всё: стволы, бита, топор, аптечки, броня.</li><li>Не бей <b>Василя Баштового</b>. Просто поверь.</li><li>Паша Рыжий хватает — <b>жми кнопку</b> быстрее.</li><li>Коктейль Молотова — лучший друг против толпы.</li></ul>", "brief": "Брифинг миссии", "brief_obj": "Задачи", "bo_0": "Возьми пистолет из ящика у старта|Разбей ящик с 🐾 — там пёс!|Дойди до сельмага и держи «ПОДЖЕЧЬ»", "bo_1": "Подожги 4 точки у основания башни|Найди Юру Америку и дай ему бутылку|Доведи Юру до Чепоносов", "bo_2": "Найди бабушку Галю|Защити её от алкашей|Доведи до автобуса", "bo_3": "Обезвредь 25 чепоносов|Включай фонарик, чтобы ослеплять|Берегись бусов ТЦК", "bo_4": "Продержись 90 секунд|ТЦК бьют дубинками — беги и прячься|Спринт спасает жизнь", "bo_5": "Уничтожь Бутылочника|Уклоняйся от бутылок|Добей его у колодца", "bo_6": "Найди дыру в заборе или разрежь сетку|Избегай дронов и ТЦК|Нужно 1500 и победа над Дашкевичем", "bo_7": "Победи гигантского Румина|Убегай от мешков с сахаром|Не подходи под биту", "bo_8": "Поговори с Василем Баштовым|Найди 3 банки наливки|Залезь на вершину к кресту", "bo_9": "Пройди через Гордовцы|Уклоняйся от тарана мопеда|Сбей Мельничука", "bo_10": "Найди Богдана Коняка|Победи Пашу Рыжего (жми, если схватит!)|Верни ключи", "bo_11": "Дойди до СТО «Лялик»|Принеси колесо, аккумулятор, карбюратор (или 400)|Выезжай из Рукшина на копейке", "bo_12": "Доедь до замка «Мультимедиа»|Сверги Дашкевича (в радужном плаще)|Приведи Василя к башне и поднимись к Властелине", "tip0": "Разбитые ящики дают патроны и аптечки.", "tip1": "Окурки — это чекпоинты.", "tip2": "Муравьи кусают всех рядом.", "tip3": "Прячься в сене, когда ТЦК близко.", "tip4": "Василь продаёт бутылки по 25.", "tip5": "Броня у Кенди уменьшает урон.", "wm_title": "Карта мира", "lg_you": "Ты здесь", "lg_quest": "Квест", "lg_done": "Пройдено", "lg_lock": "Закрыто", "lg_shop": "Лавка Кенди", "lg_vasyl": "Василь Баштовый", "lg_garage": "СТО «Лялик»", "lg_tower": "Башня «5 хатки»", "lg_border": "Граница с Румынией", "b_sprint": "БЕГ", "armor_hit": "броня!", "baton_hit": "Дубинкой!", "t_lost_tcc": "ТЦК тебя потеряли!", "t_van_chase": "Бус ТЦК гонится за тобой!", "hidden": "Спрятался", "bark_t0": "Стой! Документы!", "bark_t1": "Повестка тебе!", "bark_t2": "Куда бежишь, уклонист?", "bark_t3": "А ну в бус!", "bark_t4": "Мы тебя видим!", "bark_t5": "Здоров, Клюс! Подпиши тут!", "bark_lost0": "Куда он делся?", "bark_lost1": "Сбежал, гад…", "bark_lost2": "Ладно, в следующий раз.", "bark_a0": "Есть сигарета?", "bark_a1": "Дай пару рублей!", "bark_a2": "Здоров, Клюс!", "bark_a3": "Куда идёшь?", "bark_a4": "Чего тебе надо?", "bark_a5": "Ты меня уважаешь?", "bark_a6": "Налей сто грамм!", "bark_a7": "Э, малой, стой!", "bark_v0": "Чего тебе надо?", "bark_v1": "Куда идёшь?", "bark_v2": "Здоров, Клюс!", "bark_v3": "Есть сигарета?", "bark_v4": "Дай пару рублей, до пенсии…", "bark_v5": "Света опять нет…", "bark_n0": "Здоров, Клюс! Чего тебе?", "bark_n1": "О, Виктор! Заходи!", "bark_n2": "Куда идёшь? Постой!", "bark_n3": "Есть сигарета? Нет? Ну ладно.", "n_vill0": "Дядя Иван", "n_vill1": "Тётя Мария", "n_vill2": "Сосед Степан", "n_vill3": "Дед Пётр", "n_vill4": "Кума Оксана", "m13_name": "Хмельницкий: второй шанс", "m13_desc": "Ты погиб без сохранения — и очнулся на улице Панаса Мирного в Хмельницком. Пробеги мимо озера к ПЛАЗЕ, где ждёт Кенди. Успеешь — вернёшься туда, где упал.", "loc_13": "Хмельницкий", "reg_khm": "Хмельницкий", "lg_khm": "Хмельницкий — второй шанс", "st_pm": "ул. Панаса Мирного", "n_kendi5": "Кенди", "khm_t": "Хмельницкий — второй шанс", "khm_body": "<p>Ты погиб, а окурка-сохранения не было… Но судьба даёт ещё один шанс.</p><p>Ты просыпаешься на <b>улице Панаса Мирного</b> в Хмельницком. Беги мимо <b>озера</b> к большой белой <b>ПЛАЗЕ</b> — там ждёт <b>Кенди</b>.</p><p>Злые местные гонятся за тобой и бросают сине-жёлтые флажки на палках. Дойдёшь до Кенди — вернёшься ровно туда, где погиб, и миссия продолжится.</p><p><b>Погибнешь и здесь — история начнётся сначала.</b></p>", "khm_go": "Бежать к ПЛАЗЕ", "o_khm0": "Добеги до Кенди у ПЛАЗЫ ({0} м)", "o_khm1": "Кенди спасает тебя…", "d_ke0": "Кенди: Виктор! Ты что, с того света? Быстро сюда!", "d_ke1": "Кенди: Держи — и назад, туда, где тебя уложили. Не подведи!", "khm_back": "Кенди вернул тебя туда, где ты упал!", "khm_restart": "Ты погиб и в Хмельницком. История начинается сначала…", "w_khm": "Кенди тебя спас!", "flag_hit": "Флажком!", "bark_f0": "А ну стой!", "bark_f1": "Ты откуда такой взялся?", "bark_f2": "Лови флажок!", "bark_f3": "Куда бежишь, парень?", "bark_f4": "Тут тебе не Чепоносы!", "t_swim": "Плывёшь! Медленно, но и они тут не бегают", "b_car": "АВТО", "bo_13": "Беги по улице Панаса Мирного|Обойди озеро (или плыви)|Дойди до Кенди у ПЛАЗЫ", "m14_name": "Башня «Мультимедиа»: Властелина", "m14_desc": "На вершине башни «Мультимедиа» живёт королева Властелина. Она держит Юру Америку в клетке и хочет лишь одного — Василя Баштового. Поднимись с Василем на 5-й этаж, обменяй его на Юру и выведи Юру в Чепоносы.", "loc_14": "«5 хатка»", "bo_14": "Поднимайся по лестнице с Василем (5 этажей)|Отдай Василя Властелине — получи Юру|Спустись, дай Юре бутылку и выведи его", "o_cas2": "Веди Василя к башне «Мультимедиа» (двери башни)", "o_kp0": "Поднимайся с Василем наверх: этаж {0}/5", "o_kp1": "Отдай Василя Властелине", "o_kp2": "Спускайся с Юрой вниз: этаж {0}/5", "o_kp3": "Юра просит бутылку — дай ему", "o_kp4": "Выведи Юру в Чепоносы (выход внизу)", "floor_n": "Этаж {0}", "act_trade": "ОБМЕНЯТЬ", "n_vlast": "Властелина", "n_yura5": "Юра Америка", "t_keep_in": "Входишь в башню «Мультимедиа»…", "t_vasyl_lost": "Василь отстал — подожди его!", "t_yura_free": "Юра освобождён! Он идёт за тобой", "w_keep": "Юра Америка на свободе, Василь — у Властелины. «5 хатка» пройдена!", "d_vl_k0": "Василь: Дашкевича нет… Теперь наверх, к Властелине. Она меня давно ждёт.", "d_vl_k1": "Виктор: Веди, Василь. Юру надо вытащить.", "d_vl0": "Властелина: Кто смеет тревожить королеву «Мультимедиа»?", "d_vl1": "Властелина: О… Василь Баштовый! Наконец ты привёл его мне.", "d_vl2": "Властелина: Уговор есть уговор. Василь остаётся со мной.", "d_vl3": "Властелина: А этого американца забирай — он мне всю башню провонял наливкой.", "d_vl4": "Василь: Не переживай, Виктор. Тут неплохо… и бутылки есть.", "d_yu0": "Юра: Виктор! Я знал, что ты придёшь!", "d_yu1": "Юра: Ох… вот теперь я живой. Спасибо, брат!", "d_yu2": "Юра: Веди меня домой, в Чепоносы!"}, "en": {"cont": "Continue", "cont_s": "Saved: {0} ({1}) • {2}", "cont_new": "Viktor's story starts here", "newgame": "New game", "new_q": "Start a new game? Progress will be erased.", "howto2": "How to play", "settings": "Settings", "set_vol": "Volume", "set_radio": "Music / radio", "on": "On", "off": "Off", "set_q": "Graphics", "q_hi2": "High", "q_lo2": "Low (weak phones)", "set_lang": "Language", "set_diff": "Difficulty", "d_easy": "Easy", "d_norm": "Normal", "d_hard": "Hard", "d_klus": "Klus Commando", "diff3": "DIFFICULTY: KLUS COMMANDO", "tab_story": "Story", "tab_ctrl": "Controls", "tab_tips": "Tips", "story_html": "<p><b>Cheponosy, Bukovyna.</b> Viktor is a simple guy with a knife, a flashlight and a formicarium of battle ants. Drunks have taken the village, TCC minibuses prowl the streets, and the «5 khatka» tower looms over everything.</p><p>Viktor has had enough. He will free his village, help Yura America and Granny Halya, cross the Hill, Hordivtsi, Malyntsi and Rukshyn, fix Koniak's old Kopiyka and topple Dashkevych — king of «5 khatka» — in castle «Multimedia».</p><p>The goal is one: <b>escape to Romania</b>. But across the border waits the giant <b>Rumin</b>, king of sugar. Beat him and the legend ends.</p>", "help_v5": "<li><b>🏃 RUN / Shift</b> — sprint, uses stamina (blue bar).</li><li><b>Hide</b> by haystacks, woodpiles, trees and sheds — the TCC can't see you.</li><li><b>📜</b> — quest journal, <b>🗺</b> — world map.</li><li><b>ACTION / E</b> — talk, buy, get in the car.</li>", "tips_html": "<ul><li>The <b>TCC</b> are nearly unkillable: armor and batons. Better run — hide and wait until they lose you.</li><li>The crate with <b>🐾</b> in the first mission hides Brovko the dog — he bites enemies.</li><li><b>Kendi</b> has everything: guns, bat, axe, medkits, armor.</li><li>Don't hit <b>Vasyl Bashtovyi</b>. Just trust us.</li><li>Pasha the Red grabs — <b>mash the button</b> fast.</li><li>The Molotov is your best friend against crowds.</li></ul>", "brief": "Mission briefing", "brief_obj": "Objectives", "bo_0": "Grab the pistol from the crate near the start|Break the 🐾 crate — there's a dog!|Reach the village shop and hold «BURN»", "bo_1": "Burn 4 points at the tower base|Find Yura America and give him a bottle|Lead Yura to Cheponosy", "bo_2": "Find Granny Halya|Protect her from drunks|Lead her to the bus", "bo_3": "Take down 25 locals|Use the flashlight to blind|Watch out for TCC vans", "bo_4": "Survive 90 seconds|TCC hit with batons — run and hide|Sprint saves lives", "bo_5": "Destroy the Bottleman|Dodge the bottles|Finish him by the well", "bo_6": "Find a hole in the fence or cut the mesh|Avoid drones and TCC|Need 1500 and Dashkevych defeated", "bo_7": "Defeat the giant Rumin|Run from the sugar sacks|Stay out of bat range", "bo_8": "Talk to Vasyl Bashtovyi|Find 3 jars of nalyvka|Climb to the cross on top", "bo_9": "Cross Hordivtsi|Dodge the moped ram|Knock down Melnychuk", "bo_10": "Find Bohdan Koniak|Beat Pasha the Red (mash if grabbed!)|Return the keys", "bo_11": "Reach the «Lyalyk» garage|Bring wheel, battery, carburettor (or 400)|Drive out of Rukshyn", "bo_12": "Drive to castle «Multimedia»|Topple Dashkevych (rainbow cloak)|Bring Vasyl to the tower and climb to Vlastelina", "tip0": "Broken crates give ammo and medkits.", "tip1": "Cigarette butts are checkpoints.", "tip2": "Ants bite everyone nearby.", "tip3": "Hide in hay when TCC are close.", "tip4": "Vasyl sells bottles for 25.", "tip5": "Kendi's armor reduces damage.", "wm_title": "World map", "lg_you": "You are here", "lg_quest": "Quest", "lg_done": "Done", "lg_lock": "Locked", "lg_shop": "Kendi's shop", "lg_vasyl": "Vasyl Bashtovyi", "lg_garage": "«Lyalyk» garage", "lg_tower": "«5 khatka» tower", "lg_border": "Border with Romania", "b_sprint": "RUN", "armor_hit": "armor!", "baton_hit": "Baton!", "t_lost_tcc": "The TCC lost you!", "t_van_chase": "A TCC minibus is chasing you!", "hidden": "Hidden", "bark_t0": "Stop! Papers!", "bark_t1": "Summons for you!", "bark_t2": "Where you running, dodger?", "bark_t3": "Into the van!", "bark_t4": "We see you!", "bark_t5": "Hey Klus! Sign here!", "bark_lost0": "Where did he go?", "bark_lost1": "Got away, the rat…", "bark_lost2": "Fine, next time.", "bark_a0": "Got a smoke?", "bark_a1": "Spare a couple of rubles!", "bark_a2": "Hey, Klus!", "bark_a3": "Where you going?", "bark_a4": "What do you want?", "bark_a5": "Do you respect me?", "bark_a6": "Pour me a shot!", "bark_a7": "Hey kid, stop!", "bark_v0": "What do you want?", "bark_v1": "Where you going?", "bark_v2": "Hey, Klus!", "bark_v3": "Got a smoke?", "bark_v4": "Spare a couple of rubles, till pension…", "bark_v5": "Power's out again…", "bark_n0": "Hey Klus! What do you want?", "bark_n1": "Oh, Viktor! Come in!", "bark_n2": "Where you going? Wait!", "bark_n3": "Got a smoke? No? Fine.", "n_vill0": "Uncle Ivan", "n_vill1": "Aunt Maria", "n_vill2": "Neighbour Stepan", "n_vill3": "Grandpa Petro", "n_vill4": "Godmother Oksana", "m13_name": "Khmelnytskyi: second chance", "m13_desc": "You died without a save — and woke up on Panasa Myrnoho Street in Khmelnytskyi. Run past the lake to the PLAZA where Kendi waits. Make it, and you return to where you fell.", "loc_13": "Khmelnytskyi", "reg_khm": "Khmelnytskyi", "lg_khm": "Khmelnytskyi — second chance", "st_pm": "Panasa Myrnoho St.", "n_kendi5": "Kendi", "khm_t": "Khmelnytskyi — second chance", "khm_body": "<p>You died, and there was no cigarette-butt save… But fate gives you one more chance.</p><p>You wake up on <b>Panasa Myrnoho Street</b> in Khmelnytskyi. Run past the <b>lake</b> to the big white <b>PLAZA</b> — <b>Kendi</b> is waiting there.</p><p>Angry locals chase you and throw blue-yellow flags on sticks. Reach Kendi and you return exactly where you died, with the mission restored.</p><p><b>Die here too and the story starts over.</b></p>", "khm_go": "Run to the PLAZA", "o_khm0": "Reach Kendi at the PLAZA ({0} m)", "o_khm1": "Kendi is saving you…", "d_ke0": "Kendi: Viktor! Back from the other side? Quick, over here!", "d_ke1": "Kendi: Take this — and go back where they dropped you. Don't let me down!", "khm_back": "Kendi sent you back to where you fell!", "khm_restart": "You died in Khmelnytskyi too. The story starts over…", "w_khm": "Kendi saved you!", "flag_hit": "Flagged!", "bark_f0": "Hey, stop!", "bark_f1": "Where did you come from?", "bark_f2": "Catch the flag!", "bark_f3": "Where you running, boy?", "bark_f4": "This ain't Cheponosy!", "t_swim": "Swimming! Slow — but they don't run in here either", "b_car": "CAR", "bo_13": "Run down Panasa Myrnoho St.|Go around the lake (or swim)|Reach Kendi at the PLAZA", "m14_name": "«Multimedia» Tower: Vlastelina", "m14_desc": "At the top of the «Multimedia» tower lives Queen Vlastelina. She keeps Yura America in a cage and wants only one thing — Vasyl Bashtovyi. Climb to the 5th floor with Vasyl, trade him for Yura and lead Yura home to Cheponosy.", "loc_14": "«5 khatka»", "bo_14": "Climb the stairs with Vasyl (5 floors)|Hand Vasyl to Vlastelina — get Yura|Go down, give Yura a bottle and lead him out", "o_cas2": "Lead Vasyl to the «Multimedia» tower (tower door)", "o_kp0": "Climb up with Vasyl: floor {0}/5", "o_kp1": "Hand Vasyl over to Vlastelina", "o_kp2": "Go down with Yura: floor {0}/5", "o_kp3": "Yura wants a bottle — give him one", "o_kp4": "Lead Yura out to Cheponosy (exit below)", "floor_n": "Floor {0}", "act_trade": "TRADE", "n_vlast": "Vlastelina", "n_yura5": "Yura America", "t_keep_in": "Entering the «Multimedia» tower…", "t_vasyl_lost": "Vasyl fell behind — wait for him!", "t_yura_free": "Yura is free! He follows you", "w_keep": "Yura America is free, Vasyl stays with Vlastelina. «5 khatka» complete!", "d_vl_k0": "Vasyl: Dashkevych is done… Now up to Vlastelina. She's been waiting for me.", "d_vl_k1": "Viktor: Lead on, Vasyl. We have to get Yura out.", "d_vl0": "Vlastelina: Who dares disturb the queen of «Multimedia»?", "d_vl1": "Vlastelina: Oh… Vasyl Bashtovyi! At last you brought him to me.", "d_vl2": "Vlastelina: A deal is a deal. Vasyl stays with me.", "d_vl3": "Vlastelina: And take this American — he made my whole tower reek of nalyvka.", "d_vl4": "Vasyl: Don't worry, Viktor. It's not bad here… and there are bottles.", "d_yu0": "Yura: Viktor! I knew you'd come!", "d_yu1": "Yura: Ahh… now I'm alive. Thanks, brother!", "d_yu2": "Yura: Take me home, to Cheponosy!"}, "he": {"cont": "המשך", "cont_s": "נשמר: {0} ({1}) • {2}", "cont_new": "הסיפור של ויקטור מתחיל כאן", "newgame": "משחק חדש", "new_q": "להתחיל משחק חדש? ההתקדמות תימחק.", "howto2": "איך משחקים", "settings": "הגדרות", "set_vol": "עוצמת קול", "set_radio": "מוזיקה / רדיו", "on": "פועל", "off": "כבוי", "set_q": "גרפיקה", "q_hi2": "גבוהה", "q_lo2": "נמוכה (טלפונים חלשים)", "set_lang": "שפה", "set_diff": "רמת קושי", "d_easy": "קל", "d_norm": "רגיל", "d_hard": "קשה", "d_klus": "קלוס קומנדו", "diff3": "קושי: קלוס קומנדו", "tab_story": "עלילה", "tab_ctrl": "שליטה", "tab_tips": "טיפים", "story_html": "<p><b>צ׳פונוסי, בוקובינה.</b> ויקטור הוא בחור פשוט עם סכין, פנס ופורמיקריום של נמלי קרב. שיכורים השתלטו על הכפר, מיניבוסים של הגיוס מסתובבים ברחובות, ומגדל «5 חאטקה» מתנשא מעל הכול.</p><p>לוויקטור נמאס. הוא ישחרר את הכפר, יעזור ליורה אמריקה ולסבתא גליה, יעבור את הגבעה, הורדיבצי, מלינצי ורוקשין, יתקן את הקופייקה הישנה של קוניאק ויפיל את דשקביץ׳ — מלך «5 חאטקה» — בטירת «מולטימדיה».</p><p>המטרה אחת — <b>לברוח לרומניה</b>. אבל מעבר לגבול מחכה <b>רומין</b> הענק, מלך הסוכר. נצח אותו — והאגדה תסתיים.</p>", "help_v5": "<li><b>🏃 ריצה / Shift</b> — ספרינט, צורך סיבולת (פס כחול).</li><li><b>הסתתר</b> ליד ערימות חציר, עצים ומחסנים — הגיוס לא יראה אותך.</li><li><b>📜</b> — יומן משימות, <b>🗺</b> — מפת עולם.</li><li><b>פעולה / E</b> — לדבר, לקנות, להיכנס לרכב.</li>", "tips_html": "<ul><li>אנשי <b>הגיוס</b> כמעט בלתי מנוצחים: שריון ואלות. עדיף לברוח — להסתתר ולחכות שיאבדו אותך.</li><li>הארגז עם <b>🐾</b> במשימה הראשונה מסתיר את הכלב ברובקו — הוא נושך אויבים.</li><li>אצל <b>קנדי</b> יש הכול: רובים, מחבט, גרזן, ערכות, שריון.</li><li>אל תרביץ ל<b>וסיל בשטובי</b>. פשוט תאמין.</li><li>פאשה הג׳ינג׳י תופס — <b>לחץ מהר</b>.</li><li>בקבוק מולוטוב — החבר הכי טוב נגד המון.</li></ul>", "brief": "תדריך משימה", "brief_obj": "משימות", "bo_0": "קח את האקדח מהארגז ליד ההתחלה|שבור את ארגז ה־🐾 — יש שם כלב!|הגע לחנות והחזק «להצית»", "bo_1": "הצת 4 נקודות בבסיס המגדל|מצא את יורה אמריקה ותן לו בקבוק|הובל את יורה לצ׳פונוסי", "bo_2": "מצא את סבתא גליה|הגן עליה משיכורים|הובל אותה לאוטובוס", "bo_3": "נטרל 25 מקומיים|השתמש בפנס כדי לסנוור|היזהר ממיניבוסים של הגיוס", "bo_4": "שרוד 90 שניות|הגיוס מכה באלות — ברח והסתתר|ספרינט מציל חיים", "bo_5": "השמד את איש הבקבוקים|התחמק מהבקבוקים|גמור אותו ליד הבאר", "bo_6": "מצא חור בגדר או חתוך את הרשת|הימנע מרחפנים ומהגיוס|צריך 1500 וניצחון על דשקביץ׳", "bo_7": "נצח את רומין הענק|ברח משקי הסוכר|אל תתקרב למחבט", "bo_8": "דבר עם וסיל בשטובי|מצא 3 צנצנות ליקר|טפס לצלב בפסגה", "bo_9": "עבור דרך הורדיבצי|התחמק מהתנגשות הטוסטוס|הפל את מלניצ׳וק", "bo_10": "מצא את בוגדן קוניאק|נצח את פאשה הג׳ינג׳י (לחץ אם תפס!)|החזר את המפתחות", "bo_11": "הגע למוסך «ליאליק»|הבא גלגל, מצבר, קרבורטור (או 400)|צא מרוקשין בקופייקה", "bo_12": "סע לטירת «מולטימדיה»|הפל את דשקביץ׳ (בגלימת קשת)|הבא את וסיל למגדל ועלה לולסטלינה", "tip0": "ארגזים שבורים נותנים תחמושת וערכות.", "tip1": "בדלי סיגריות הם נקודות שמירה.", "tip2": "נמלים נושכות את כל מי שקרוב.", "tip3": "הסתתר בחציר כשהגיוס קרוב.", "tip4": "וסיל מוכר בקבוקים ב־25.", "tip5": "השריון של קנדי מפחית נזק.", "wm_title": "מפת העולם", "lg_you": "אתה כאן", "lg_quest": "משימה", "lg_done": "הושלם", "lg_lock": "נעול", "lg_shop": "החנות של קנדי", "lg_vasyl": "וסיל בשטובי", "lg_garage": "מוסך «ליאליק»", "lg_tower": "מגדל «5 חאטקה»", "lg_border": "הגבול עם רומניה", "b_sprint": "ריצה", "armor_hit": "שריון!", "baton_hit": "אלה!", "t_lost_tcc": "הגיוס איבדו אותך!", "t_van_chase": "מיניבוס של הגיוס רודף אחריך!", "hidden": "מוסתר", "bark_t0": "עצור! תעודות!", "bark_t1": "צו גיוס בשבילך!", "bark_t2": "לאן אתה בורח, משתמט?", "bark_t3": "לתוך הוואן!", "bark_t4": "אנחנו רואים אותך!", "bark_t5": "היי קלוס! תחתום כאן!", "bark_lost0": "לאן הוא נעלם?", "bark_lost1": "ברח, המנוול…", "bark_lost2": "טוב, בפעם הבאה.", "bark_a0": "יש סיגריה?", "bark_a1": "תן כמה רובל!", "bark_a2": "היי, קלוס!", "bark_a3": "לאן אתה הולך?", "bark_a4": "מה אתה רוצה?", "bark_a5": "אתה מכבד אותי?", "bark_a6": "תמזוג לי צ׳ייסר!", "bark_a7": "הי ילד, עצור!", "bark_v0": "מה אתה רוצה?", "bark_v1": "לאן אתה הולך?", "bark_v2": "היי, קלוס!", "bark_v3": "יש סיגריה?", "bark_v4": "תן כמה רובל, עד הפנסיה…", "bark_v5": "שוב אין חשמל…", "bark_n0": "היי קלוס! מה אתה רוצה?", "bark_n1": "הו, ויקטור! תיכנס!", "bark_n2": "לאן אתה הולך? חכה!", "bark_n3": "יש סיגריה? לא? טוב.", "n_vill0": "הדוד איוון", "n_vill1": "הדודה מריה", "n_vill2": "השכן סטפן", "n_vill3": "סבא פטרו", "n_vill4": "הסנדקית אוקסנה", "m13_name": "חמלניצקי: הזדמנות שנייה", "m13_desc": "מתת בלי שמירה — והתעוררת ברחוב פנס מירני בחמלניצקי. רוץ ליד האגם אל הפלאזה, שם מחכה קנדי. תגיע — ותחזור למקום שבו נפלת.", "loc_13": "חמלניצקי", "reg_khm": "חמלניצקי", "lg_khm": "חמלניצקי — הזדמנות שנייה", "st_pm": "רח׳ פנס מירני", "n_kendi5": "קנדי", "khm_t": "חמלניצקי — הזדמנות שנייה", "khm_body": "<p>מתת, ולא הייתה שמירת בדל סיגריה… אבל הגורל נותן עוד הזדמנות.</p><p>אתה מתעורר ב<b>רחוב פנס מירני</b> בחמלניצקי. רוץ ליד <b>האגם</b> אל <b>הפלאזה</b> הלבנה הגדולה — שם מחכה <b>קנדי</b>.</p><p>מקומיים כועסים רודפים אחריך וזורקים דגלים כחול-צהוב על מקלות. תגיע לקנדי — ותחזור בדיוק למקום שבו מתת, והמשימה תימשך.</p><p><b>תמות גם כאן — הסיפור יתחיל מההתחלה.</b></p>", "khm_go": "לרוץ לפלאזה", "o_khm0": "הגע לקנדי בפלאזה ({0} מ׳)", "o_khm1": "קנדי מציל אותך…", "d_ke0": "קנדי: ויקטור! חזרת מהעולם הבא? מהר, לכאן!", "d_ke1": "קנדי: קח — וחזור למקום שבו הפילו אותך. אל תאכזב!", "khm_back": "קנדי החזיר אותך למקום שבו נפלת!", "khm_restart": "מתת גם בחמלניצקי. הסיפור מתחיל מההתחלה…", "w_khm": "קנדי הציל אותך!", "flag_hit": "דגל!", "bark_f0": "היי, עצור!", "bark_f1": "מאיפה באת?", "bark_f2": "תתפוס דגל!", "bark_f3": "לאן אתה רץ, ילד?", "bark_f4": "זה לא צ׳פונוסי!", "t_swim": "שוחה! לאט — אבל גם הם לא רצים כאן", "b_car": "רכב", "bo_13": "רוץ ברחוב פנס מירני|עקוף את האגם (או שחה)|הגע לקנדי בפלאזה", "m14_name": "מגדל «מולטימדיה»: ולסטלינה", "m14_desc": "בראש מגדל «מולטימדיה» גרה המלכה ולסטלינה. היא מחזיקה את יורה אמריקה בכלוב ורוצה רק דבר אחד — את וסיל בשטובי. עלה עם וסיל לקומה 5, החלף אותו ביורה והובל את יורה הביתה לצ׳פונוסי.", "loc_14": "«5 חאטקה»", "bo_14": "עלה במדרגות עם וסיל (5 קומות)|מסור את וסיל לולסטלינה — קבל את יורה|רד, תן ליורה בקבוק והוצא אותו", "o_cas2": "הובל את וסיל למגדל «מולטימדיה» (דלת המגדל)", "o_kp0": "עלה עם וסיל למעלה: קומה {0}/5", "o_kp1": "מסור את וסיל לולסטלינה", "o_kp2": "רד עם יורה: קומה {0}/5", "o_kp3": "יורה מבקש בקבוק — תן לו", "o_kp4": "הוצא את יורה לצ׳פונוסי (יציאה למטה)", "floor_n": "קומה {0}", "act_trade": "החלף", "n_vlast": "ולסטלינה", "n_yura5": "יורה אמריקה", "t_keep_in": "נכנס למגדל «מולטימדיה»…", "t_vasyl_lost": "וסיל נשאר מאחור — חכה לו!", "t_yura_free": "יורה שוחרר! הוא הולך אחריך", "w_keep": "יורה אמריקה חופשי, וסיל נשאר עם ולסטלינה. «5 חאטקה» הושלמה!", "d_vl_k0": "וסיל: דשקביץ׳ גמור… עכשיו למעלה, לולסטלינה. היא מחכה לי מזמן.", "d_vl_k1": "ויקטור: תוביל, וסיל. צריך לחלץ את יורה.", "d_vl0": "ולסטלינה: מי מעז להפריע למלכת «מולטימדיה»?", "d_vl1": "ולסטלינה: הו… וסיל בשטובי! סוף סוף הבאת אותו אליי.", "d_vl2": "ולסטלינה: עסקה היא עסקה. וסיל נשאר איתי.", "d_vl3": "ולסטלינה: ואת האמריקאי הזה קח — הוא הסריח לי את כל המגדל בליקר.", "d_vl4": "וסיל: אל תדאג, ויקטור. לא רע כאן… ויש בקבוקים.", "d_yu0": "יורה: ויקטור! ידעתי שתבוא!", "d_yu1": "יורה: אח… עכשיו אני חי. תודה, אחי!", "d_yu2": "יורה: קח אותי הביתה, לצ׳פונוסי!"}};for(const l in A){Object.assign(L10N[l],A[l]);}})();
+
+// ================= v5 UI: modern dark-glass theme, new main menu, settings, how-to-play tabs, briefing, world map =================
+(function(){const css=document.createElement('style');css.textContent=`
+:root{--acc:#ffb020;--acc2:#4fc3ff;--glass:rgba(16,20,32,.78);--line:rgba(255,255,255,.14)}
+body{font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+#grain,.grade #grain{display:none!important}
+.panel,.xpp{background:var(--glass)!important;color:#eef2f8!important;border:1px solid var(--line)!important;border-radius:18px!important;box-shadow:0 20px 60px rgba(0,0,0,.55)!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.panel h2,.xpp h2{color:#fff!important;text-shadow:none!important;font-weight:800;letter-spacing:.3px}
+.panel p,.xpp p,.xpp li,.panel li{color:#d8dee9!important}
+.say{background:rgba(255,255,255,.06)!important;border:1px solid var(--line)!important;color:#fff!important;border-radius:12px}
+.xpp .st,.panel .st{color:#7ee787!important}.xpp .lk,.panel .lk{color:#ff7b72!important}
+.btn{font-family:inherit!important;background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.2)!important;border-radius:12px!important;color:#fff!important;text-shadow:none!important;box-shadow:0 4px 14px rgba(0,0,0,.35)!important;font-weight:700!important;transition:transform .08s,background .15s}
+.btn:hover{background:rgba(255,255,255,.16)!important}.btn:active{transform:scale(.97)!important}
+.btn.g{background:linear-gradient(135deg,#ffb020,#ff6a00)!important;border-color:transparent!important;color:#1a0f00!important}
+.btn.b{background:rgba(79,195,255,.18)!important;border-color:rgba(79,195,255,.5)!important}
+.srow{border-bottom:1px solid var(--line)!important}.srow .sn,.srow .sn b{color:#fff!important}.srow small{color:#aab4c3!important}
+.shcat{color:var(--acc)!important}.jq b{color:var(--acc)!important}.jq small{color:#c8d0dc}
+.slot{background:rgba(10,14,24,.65)!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:10px!important}.slot.on{border-color:var(--acc)!important;background:rgba(255,176,32,.22)!important}
+.cb{border:1px solid rgba(255,255,255,.3)!important;background:radial-gradient(circle at 40% 35%,rgba(90,100,120,.9),rgba(20,24,34,.9))!important;box-shadow:0 6px 18px rgba(0,0,0,.45)!important;text-shadow:none!important}
+#bFire{background:radial-gradient(circle at 40% 35%,#ff6a4a,#b3200a)!important}
+#hpBox{border-radius:10px!important;border:1px solid rgba(255,255,255,.25)!important;background:rgba(10,14,24,.7)!important;overflow:hidden}
+#obj{background:rgba(10,14,24,.7)!important;border:1px solid var(--line)!important;border-radius:12px!important}
+#toast{background:rgba(10,14,24,.85)!important;border:1px solid var(--line)!important;border-radius:14px!important;color:#fff!important;text-shadow:none!important;font-weight:600!important}
+#hudMoney,#wallet{background:rgba(10,14,24,.7)!important;border:1px solid rgba(255,176,32,.6)!important;border-radius:12px!important;color:var(--acc)!important;text-shadow:none!important}
+#bPause,#bJour{background:rgba(10,14,24,.7)!important;border:1px solid var(--line)!important;color:#fff!important;border-radius:12px!important}
+/* new menu */
+#menu .xpwin{display:none}
+#v5menu{width:min(92vw,460px);text-align:center;padding:26px 22px;border-radius:24px;background:linear-gradient(160deg,rgba(18,22,36,.82),rgba(10,12,20,.7));border:1px solid var(--line);box-shadow:0 30px 80px rgba(0,0,0,.6);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+#v5menu .t1{font-size:min(9vw,40px);font-weight:900;line-height:1.05;background:linear-gradient(180deg,#fff2c0,#ffb020 60%,#ff6a00);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:.5px}
+#v5menu .t2{font-size:12px;letter-spacing:4px;color:var(--acc2);margin:6px 0 8px;text-transform:uppercase}
+#v5menu .sub{color:#c8d0dc;font-size:min(3.6vw,14px);margin:0 0 16px}
+#v5menu .btn{display:block;width:100%;margin:8px 0!important;padding:13px 16px!important;font-size:min(4.8vw,19px)!important;text-align:start}
+#v5menu .btn small{display:block;font-weight:500;opacity:.8;font-size:12px;margin-top:2px}
+#v5menu .row{display:flex;gap:8px}#v5menu .row .btn{flex:1;text-align:center}
+.v5scr{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:45;background:rgba(0,0,0,.45);padding:12px}
+.v5scr.on{display:flex}.v5scr .panel{width:min(94vw,560px);max-height:90vh;overflow:auto;text-align:start}
+.v5set{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.v5set label{font-weight:700;color:#fff}.v5set input[type=range]{flex:1;min-width:140px;accent-color:#ffb020}
+.seg{display:flex;flex-wrap:wrap;gap:6px}.seg button{background:rgba(255,255,255,.07);border:1px solid var(--line);color:#fff;border-radius:10px;padding:7px 10px;font:inherit;font-weight:600;cursor:pointer}
+.seg button.on{background:linear-gradient(135deg,#ffb020,#ff6a00);color:#1a0f00;border-color:transparent}
+.tabs{display:flex;gap:6px;margin:6px 0 10px}.tabs button{flex:1;background:rgba(255,255,255,.07);border:1px solid var(--line);color:#fff;border-radius:10px;padding:9px;font:inherit;font-weight:700}
+.tabs button.on{background:rgba(79,195,255,.25);border-color:var(--acc2)}
+.tabc{color:#d8dee9;line-height:1.5;font-size:15px}.tabc li{margin:5px 0}.tabc b{color:var(--acc)}
+.brief h3{margin:4px 0;color:var(--acc);font-size:13px;letter-spacing:2px;text-transform:uppercase}.brief .loc{color:var(--acc2);font-weight:700}.brief ul{padding-inline-start:20px;color:#e8edf3}.brief li{margin:4px 0}
+#wmCv{width:100%;display:block;border-radius:14px;aspect-ratio:1.3}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:13px;color:#d8dee9;margin-top:8px}.legend span{display:flex;align-items:center;gap:5px}
+#bMapG{position:absolute;right:106px;top:calc(env(safe-area-inset-top) + 6px);pointer-events:auto;z-index:3;width:42px;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:rgba(10,14,24,.7);font-size:20px;color:#fff}
+#bSprint{width:60px;height:60px;font-size:12px;right:calc(env(safe-area-inset-right) + 190px);bottom:calc(env(safe-area-inset-bottom) + 100px)}
+#stam{position:absolute;left:12px;top:calc(env(safe-area-inset-top) + 40px);width:140px;height:6px;border-radius:4px;background:rgba(0,0,0,.5);overflow:hidden;pointer-events:none}
+#stam i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#4fc3ff,#7ee787)}
+`;document.head.appendChild(css);})();
+// ---- main menu ----
+(function(){const m=$('menu');const d=document.createElement('div');d.id='v5menu';
+ d.innerHTML='<div class="t1">The Legend of<br>Yura America</div><div class="t2">Чепоноси · Буковина</div><div class="sub" data-t="sub"></div>'+
+ '<button class="btn g" id="bCont"><span id="bContT"></span><small id="bContS"></small></button><button class="btn" id="bNew"></button>'+
+ '<div class="row"><button class="btn b" id="bHow"></button><button class="btn" id="bSet"></button></div>';m.appendChild(d);
+ const mk=(id,inner)=>{const s=document.createElement('div');s.id=id;s.className='v5scr';s.innerHTML='<div class="panel">'+inner+'</div>';document.body.appendChild(s);return s;};
+ mk('setScr','<h2 id="setT"></h2><div id="setBody"></div><div style="text-align:center;margin-top:12px"><button class="btn g" id="bSetOk"></button></div>');
+ mk('howScr','<h2 id="howT"></h2><div class="tabs"><button data-tab="story"></button><button data-tab="ctrl"></button><button data-tab="tips"></button></div><div class="tabc" id="howBody"></div><div style="text-align:center;margin-top:12px"><button class="btn g" id="bHowOk"></button></div>');
+ mk('briefScr','<div class="brief"><h3 id="brK"></h3><h2 id="brT"></h2><div class="loc" id="brL"></div><p id="brD"></p><h3 id="brOK"></h3><ul id="brO"></ul><p id="brTip" style="opacity:.85;font-style:italic"></p></div><div class="row" style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="bBrBack" style="flex:1"></button><button class="btn g" id="bBrGo" style="flex:2"></button></div>');
+ mk('wmScr','<h2 id="wmT"></h2><canvas id="wmCv" width="640" height="492"></canvas><div class="legend" id="wmLeg"></div><div style="text-align:center;margin-top:10px"><button class="btn g" id="bWmOk"></button></div>');
+ const on=(id,f)=>$(id).addEventListener('click',e=>{e.stopPropagation();SFX.init();SFX.ui();f(e);});
+ on('bCont',()=>showScreen('street'));on('bNew',()=>{if(save.done.length&&!confirm(t('new_q')))return;Object.assign(save,{unlocked:1,done:[],money:0,crossed:false,finished:false,kit:{},owned:{},up:{},cp:{},dog:false,earned:0});persist();ST=null;showScreen('street');setTimeout(()=>openDlg(0),300);});
+ on('bHow',()=>openHow('story'));on('bSet',()=>openSettings());on('bSetOk',()=>{$('setScr').classList.remove('on');v5labels();});on('bHowOk',()=>$('howScr').classList.remove('on'));
+ document.querySelectorAll('#howScr .tabs button').forEach(b=>b.addEventListener('click',()=>openHow(b.dataset.tab)));
+ on('bBrBack',()=>{$('briefScr').classList.remove('on');});on('bBrGo',()=>{$('briefScr').classList.remove('on');startMission(briefM,true);});
+ on('bWmOk',()=>closeWorldMap());
+ const mb=document.createElement('button');mb.id='bMapG';mb.textContent='🗺';$('topbar').appendChild(mb);mb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();openWorldMap();});
+ const st=document.createElement('div');st.id='stam';st.innerHTML='<i></i>';$('hud').appendChild(st);
+ const sb=document.createElement('button');sb.className='cb';sb.id='bSprint';$('btns').appendChild(sb);
+ sb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();input.sprint=true;sb.classList.add('act');});
+ for(const ev of ['pointerup','pointercancel','pointerleave'])sb.addEventListener(ev,()=>{input.sprint=false;sb.classList.remove('act');});})();
+function v5nextQuest(){for(const i of QORDER)if(qStatus(i)==='open')return i;return 7;}
+function v5labels(){$('bContT').textContent='▶ '+t('cont');const q=v5nextQuest();$('bContS').textContent=save.done.length?t('cont_s',t('m'+q+'_name'),t('loc_'+q),save.money).replace(/ \((.+?)\)/,(a,b)=>b===t('m'+q+'_name')?'':a):t('cont_new');
+ $('bNew').textContent='✚ '+t('newgame');$('bHow').textContent='❔ '+t('howto2');$('bSet').textContent='⚙ '+t('settings');
+ $('bSprint').innerHTML='🏃<br>'+t('b_sprint');}
+// settings
+function openSettings(){const B=$('setBody');$('setT').textContent='⚙ '+t('settings');$('bSetOk').textContent=t('ok');
+ const seg=(opts,cur,f)=>'<div class="seg">'+opts.map(([v,l])=>'<button data-v="'+v+'" class="'+(String(v)===String(cur)?'on':'')+'">'+l+'</button>').join('')+'</div>';
+ B.innerHTML='<div class="v5set"><label>🔊 '+t('set_vol')+'</label><input type="range" id="sVol" min="0" max="100" value="'+Math.round((save.vol===undefined?0.9:save.vol)*100)+'"></div>'+
+  '<div class="v5set"><label>📻 '+t('set_radio')+'</label>'+seg([[1,t('on')],[0,t('off')]],save.radio?1:0)+'<input type="range" id="sMus" min="0" max="100" value="'+Math.round((save.mus===undefined?1:save.mus)*100)+'"></div>'+
+  '<div class="v5set" id="sQ"><label>🎨 '+t('set_q')+'</label>'+seg([['high',t('q_hi2')],['low',t('q_lo2')]],QUAL.low?'low':'high')+'</div>'+
+  '<div class="v5set" id="sL"><label>🌐 '+t('set_lang')+'</label>'+seg([['uk','Українська'],['ru','Русский'],['en','English'],['he','עברית']],LANG)+'</div>'+
+  '<div class="v5set" id="sD"><label>💀 '+t('set_diff')+'</label>'+seg([[0,t('d_easy')],[1,t('d_norm')],[2,t('d_hard')],[3,t('d_klus')]],dI())+'</div>';
+ B.querySelector('#sVol').addEventListener('input',e=>{save.vol=e.target.value/100;persist();SFX.init();if(SFX.master){SFX.setSound(save.vol>0);SFX.master.gain.value=save.vol;}});
+ B.querySelector('#sMus').addEventListener('input',e=>{save.mus=e.target.value/100;persist();});
+ const segs=B.querySelectorAll('.seg');
+ segs[0].addEventListener('click',e=>{const v=e.target.dataset.v;if(v===undefined)return;save.radio=v==='1';persist();setLabels();openSettings();});
+ segs[1].addEventListener('click',e=>{const v=e.target.dataset.v;if(!v)return;if((v==='low')!==QUAL.low)setQuality(v==='low');openSettings();});
+ segs[2].addEventListener('click',e=>{const v=e.target.dataset.v;if(!v)return;const lb=document.querySelector('.lng[data-l="'+v+'"]');if(lb)lb.click();showScreen('menu');openSettings();v5labels();});
+ segs[3].addEventListener('click',e=>{const v=e.target.dataset.v;if(v===undefined)return;save.diff=+v;persist();setLabels();openSettings();});
+ $('setScr').classList.add('on');}
+const _rsv5=RADIO.setVol.bind(RADIO);RADIO.setVol=function(v){_rsv5(v*(save.mus===undefined?1:save.mus));};
+const _ss5s=SFX.setSound.bind(SFX);SFX.setSound=function(on){_ss5s(on);if(on&&this.master&&save.vol!==undefined)this.master.gain.setTargetAtTime(save.vol,this.ctx.currentTime,0.05);};
+function openHow(tab){$('howT').textContent='❔ '+t('howto2');$('bHowOk').textContent=t('ok');document.querySelectorAll('#howScr .tabs button').forEach(b=>{b.textContent=t('tab_'+b.dataset.tab);b.classList.toggle('on',b.dataset.tab===tab);});
+ $('howBody').innerHTML=tab==='ctrl'?'<ul>'+t('help_body')+t('help_v5')+'</ul>':t(tab==='story'?'story_html':'tips_html');$('howScr').classList.add('on');}
+// ---- briefing before every mission ----
+let briefM=0;const _startM5=startMission;
+startMission=function(i,force){if(force||state==='play'||state==='end'||state==='pause'){_startM5(i);return;}briefM=i;
+ $('brK').textContent=t('brief');$('brT').textContent=t('m'+i+'_name');$('brL').textContent='📍 '+t('loc_'+i);$('brD').textContent=t('m'+i+'_desc');$('brOK').textContent=t('brief_obj');
+ const ob=(t('bo_'+i)||'').split('|').filter(x=>x&&x!=='bo_'+i);$('brO').innerHTML=ob.map(x=>'<li>'+x+'</li>').join('');$('brTip').textContent='💡 '+t('tip'+(i%6));
+ $('bBrBack').textContent=t('back');$('bBrGo').textContent='▶ '+t('play');$('briefScr').classList.add('on');};
+// in-game restart / next skip briefing
+const _bRe=$('bRestart'),_bRt=$('bRetry');
+// ---- world map ----
+const WM=[{id:'chep',x:0.46,y:0.6,m:null,ic:'🏠'},{id:'hill',x:0.31,y:0.43,m:8,ic:'⛰'},{id:'gord',x:0.14,y:0.22,m:9,ic:'🛵'},{id:'maly',x:0.53,y:0.17,m:10,ic:'🔑'},{id:'ruk',x:0.85,y:0.3,m:11,ic:'🔧'},{id:'castle',x:0.8,y:0.66,m:12,ic:'🏰'},{id:'border',x:0.44,y:0.88,m:6,ic:'🚧'}];
+let wmWasPlay=false;
+function openWorldMap(){SFX.ui();wmWasPlay=state==='play';if(wmWasPlay)showScreen('pause');$('wmT').textContent='🗺 '+t('wm_title');$('bWmOk').textContent=t('back');
+ $('wmLeg').innerHTML=[['🔵',t('lg_you')],['❗',t('lg_quest')],['✅',t('lg_done')],['🔒',t('lg_lock')],['🛒',t('lg_shop')],['🍾',t('lg_vasyl')],['🔧',t('lg_garage')],['🗼',t('lg_tower')],['🚧',t('lg_border')],['☠',t('lg_khm')]].map(([a,b])=>'<span>'+a+' '+b+'</span>').join('');
+ $('wmScr').classList.add('on');drawWorldMap();}
+function closeWorldMap(){$('wmScr').classList.remove('on');if(wmWasPlay&&state==='pause'){wmWasPlay=false;showScreen('play');}}
+function curLoc(){if(!G)return 'chep';const m=G.mission;return m===8?'hill':m===9?'gord':m===10?'maly':m===11?'ruk':m===12?'castle':m===13?'khm':m===14?'castle':m===6?'border':m===7?'ro':'chep';}
+function drawWorldMap(){const cv=$('wmCv'),c=cv.getContext('2d'),w=cv.width,h=cv.height;
+ const gr=c.createLinearGradient(0,0,w,h);gr.addColorStop(0,'#2f4a2a');gr.addColorStop(1,'#1d3020');c.fillStyle=gr;c.fillRect(0,0,w,h);
+ for(let i=0;i<140;i++){c.fillStyle='rgba(120,170,90,'+(0.05+(i%5)*0.02)+')';c.beginPath();c.arc((i*137)%w,(i*71+i*i*3)%h,4+(i%7)*3,0,7);c.fill();}
+ c.strokeStyle='rgba(80,160,230,.85)';c.lineWidth=7;c.beginPath();c.moveTo(0,h*0.77);c.bezierCurveTo(w*0.3,h*0.69,w*0.6,h*0.94,w,h*0.82);c.stroke();
+ // border to Romania
+ c.fillStyle='rgba(206,17,38,.18)';c.fillRect(0,h*0.93,w,h*0.07);c.setLineDash([10,6]);c.strokeStyle='#ff5050';c.lineWidth=3;c.beginPath();c.moveTo(0,h*0.93);c.lineTo(w,h*0.93);c.stroke();c.setLineDash([]);
+ c.fillStyle='#fff';c.font='bold 15px sans-serif';c.textAlign='center';c.fillText('🇷🇴 ROMÂNIA — '+t('lg_border'),w*0.5,h*0.975);
+ const P=id=>WM.find(r=>r.id===id);c.lineCap='round';
+ for(const [a,b] of REGE){const A=P(a),B=P(b);c.strokeStyle='rgba(230,205,150,.85)';c.lineWidth=8;c.beginPath();c.moveTo(A.x*w,A.y*h);c.lineTo(B.x*w,B.y*h);c.stroke();}
+ // castle (very long) + tower
+ const C=P('castle');c.fillStyle='#d8d0c0';c.fillRect(C.x*w-70,C.y*h-12,140,16);c.fillStyle='#4a2a5a';for(let k=0;k<5;k++){c.beginPath();c.moveTo(C.x*w-70+k*35,C.y*h-12);c.lineTo(C.x*w-62+k*35,C.y*h-26);c.lineTo(C.x*w-54+k*35,C.y*h-12);c.fill();}
+ c.fillStyle='#b9b4aa';c.fillRect(C.x*w-110,C.y*h-70,16,74);c.fillStyle='#fff';c.font='12px sans-serif';c.fillText('🗼 '+t('reg_tower'),C.x*w-102,C.y*h-78);
+ // POIs
+ const ch=P('chep');const poi=[['🛒',ch.x*w+40,ch.y*h-30,t('btn_shop')],['🍾',P('hill').x*w+40,P('hill').y*h+14,t('n_vasyl')],['🔧',P('ruk').x*w-6,P('ruk').y*h+52,t('lg_garage')]];
+ for(const [ic,x,y,l] of poi){c.font='18px sans-serif';c.fillText(ic,x,y);c.font='bold 11px sans-serif';c.fillStyle='#bfe6ff';c.fillText(l,x,y+14);c.fillStyle='#fff';}
+ const cl=curLoc();
+ for(const r of WM){const st=r.m===null?'open':qStatus(r.m);const x=r.x*w,y=r.y*h;
+  c.fillStyle=st==='done'?'rgba(126,231,135,.95)':st==='open'?'rgba(255,176,32,.95)':'rgba(140,140,150,.9)';c.beginPath();c.arc(x,y,19,0,7);c.fill();c.strokeStyle='rgba(0,0,0,.6)';c.lineWidth=2;c.stroke();
+  c.font='18px sans-serif';c.fillStyle='#000';c.fillText(r.ic,x,y+6);
+  const mk=st==='done'?'✅':st==='open'&&r.m!==null?'❗':st==='lock'?'🔒':'';if(mk){c.font='14px sans-serif';c.fillText(mk,x+18,y-14);}
+  const lb=t('reg_'+r.id);c.font='bold 13px sans-serif';const tw=c.measureText(lb).width+14;c.fillStyle='rgba(10,14,24,.8)';rr(c,x-tw/2,y+22,tw,20,7);c.fill();c.fillStyle='#fff';c.fillText(lb,x,y+36);
+  if(r.id===cl){c.strokeStyle='#4fc3ff';c.lineWidth=4;c.beginPath();c.arc(x,y,26+Math.sin(T*4)*3,0,7);c.stroke();c.fillStyle='#4fc3ff';c.beginPath();c.arc(x-20,y-20,7,0,7);c.fill();c.font='bold 11px sans-serif';c.fillText(t('lg_you'),x-20,y-32);}}
+ if(hasCar()){c.font='22px sans-serif';c.fillText('🚗',ch.x*w-40,ch.y*h-18);}
+ if($('wmScr').classList.contains('on'))requestAnimationFrame(drawWorldMap);}
+$('wmCv')&&$('wmCv').addEventListener('click',e=>{if(state==='pause')return;const cv=$('wmCv'),b=cv.getBoundingClientRect(),x=(e.clientX-b.left)/b.width*cv.width,y=(e.clientY-b.top)/b.height*cv.height;
+ for(const r of WM)if(dist(x,y,r.x*cv.width,r.y*cv.height)<28){closeWorldMap();if(r.m===null)showScreen('street');else openDlg(r.m);return;}});
+// region button in street now opens the full world map
+openRegion=function(){openWorldMap();};
+const _ss5=showScreen;showScreen=function(s){_ss5(s);if(s==='menu')v5labels();if(s!=='pause'&&s!=='play')$('wmScr')&&$('wmScr').classList.remove('on');};
+setTimeout(()=>{v5labels();},0);
+
+// ================= v5 GAMEPLAY: dialogue box + barks, ТЦК with batons/armor/minibus chase, sprint+stamina, hiding, giant Румин, glow =================
+(function(){const d=document.createElement('div');d.id='v5dlg';d.innerHTML='<b id="v5dn"></b><span id="v5dt"></span>';document.body.appendChild(d);const css=document.createElement('style');css.textContent=`
+#v5dlg{position:fixed;left:50%;transform:translateX(-50%) translateY(20px);bottom:calc(env(safe-area-inset-bottom) + 150px);width:min(92vw,560px);background:rgba(10,14,24,.88);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:10px 16px;color:#fff;z-index:20;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;backdrop-filter:blur(10px);text-align:start}
+#v5dlg.on{opacity:1;transform:translateX(-50%) translateY(0)}#v5dlg b{display:block;color:#ffb020;font-size:13px;letter-spacing:1px;text-transform:uppercase}#v5dlg span{font-size:16px;line-height:1.35}
+#hideTag{position:absolute;left:12px;top:calc(env(safe-area-inset-top) + 50px);background:rgba(30,90,40,.85);color:#fff;border-radius:10px;padding:3px 9px;font-size:12px;font-weight:700;display:none;pointer-events:none}
+canvas#gl{filter:saturate(1.12) contrast(1.06)}
+#vig5{position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(0,0,0,.38) 100%)}`;document.head.appendChild(css);
+ const h=document.createElement('div');h.id='hideTag';$('hud').appendChild(h);const v=document.createElement('div');v.id='vig5';document.body.insertBefore(v,document.body.children[1]);})();
+// dialogue box: say("Name: text") lines
+const _sm5d=startMission;startMission=function(i,f){const d=document.getElementById('v5dlg');if(d)d.classList.remove('on');return _sm5d(i,f);};
+say=function(lines){if(!G)return;G.v5say=(G.v5say||[]).concat(lines);if(!G.v5sayT)G.v5sayT=0.01;};
+function dlgShow(line){const i=line.indexOf(': ');$('v5dn').textContent=i>0?line.slice(0,i):'';$('v5dt').textContent=i>0?line.slice(i+2):line;$('v5dlg').classList.add('on');}
+function bubble(o,txt,d){if(!G)return;G.v5bub=(G.v5bub||[]).filter(b=>b.o!==o);G.v5bub.push({o,txt,t:d||2.8});}
+// ---- ТЦК: batons, armor, very tough; lose the chase when out of sight ----
+ZT.tcc.hp=950;ZT.tcc.spd=[62,70];
+const _hz5=hurtZombie;hurtZombie=function(z,dmg,kx,ky,silent){if(z.type==='tcc'){dmg*=0.5;if(!silent&&Math.random()<0.25)floatText(z.x,z.y-70,t('armor_hit'),'#9cf');}_hz5(z,dmg,kx,ky,silent);};
+V4AI.tcc=function(z,tg,d,dt,i){const p=G.player;z.swCd=(z.swCd===undefined?0.6:z.swCd)-dt;const hid=G.hidden&&d>70;
+ const sees=tg===p&&!hid&&d<(G.level.dark>0.6&&!p.flash?170:280)&&los(z.x,z.y-20,p.x,p.y-20);
+ if(z.guard&&!z.alert){if(G.alarm>0&&!hid||sees||z.hp<z.maxHp){z.alert=true;z.lostT=0;floatText(z.x,z.y-80,'!','#ff3030');bubble(z,t('bark_t'+ri(0,5)));SFX.whistle(z.x,z.y);}
+  else{z.gt=(z.gt||0)-dt;if(z.gt<=0||!z.gp){z.gt=rand(2,4);z.gp={x:z.guard.x+rand(-70,70),y:z.guard.y+rand(-40,40)};}if(dist(z.x,z.y,z.gp.x,z.gp.y)>8)stepToward(z,z.gp.x,z.gp.y,28,dt,i);return;}}
+ if(!z.guard)z.guard={x:z.x,y:z.y};
+ // losing the chase
+ if(tg===p){if(sees){z.lostT=0;z.lastSeen={x:p.x,y:p.y};}else{z.lostT=(z.lostT||0)+dt;if(z.lostT>3.2&&d>200){z.alert=false;z.guard={x:z.x,y:z.y};z.lostT=0;if(!G.lostMsgT||T-G.lostMsgT>4){G.lostMsgT=T;toast(t('t_lost_tcc'),1800);}bubble(z,t('bark_lost'+ri(0,2)));return;}
+   if(z.lastSeen&&dist(z.x,z.y,z.lastSeen.x,z.lastSeen.y)>20){stepToward(z,z.lastSeen.x,z.lastSeen.y,z.spd,dt,i);return;}}}
+ if(z.swing>0){z.swing-=dt;z.wantFace=Math.atan2(tg.y-z.y,tg.x-z.x);if(!z.hitD&&z.swing<0.2){z.hitD=true;if(d<z.r+tg.r+40){hitP(z,tg,20,380,'tcc',t('baton_hit'));G.shake=Math.max(G.shake,9);SFX.batHit(z.x,z.y);}else SFX.batSwing(z.x,z.y);}return;}
+ if(d<z.r+tg.r+30&&z.swCd<=0){z.swing=0.55;z.hitD=false;z.swCd=1.0;return;}
+ if(d>z.r+tg.r+8)stepToward(z,tg.x,tg.y,z.spd*(z.blind>0?0.6:1),dt,i);else z.wantFace=Math.atan2(tg.y-z.y,tg.x-z.x);};
+// ---- sprint + stamina, hiding spots ----
+const _upd5=update;update=function(dt){const g=G,p=g&&g.player;
+ if(p&&!p.dead){if(p.base===undefined)p.base=p.spd;p.stam=p.stam===undefined?1:p.stam;const want=(input.sprint||keys.ShiftLeft||keys.ShiftRight)&&(Math.abs(input.mx)+Math.abs(input.my)>0.1||keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||keys.ArrowUp||keys.ArrowDown||keys.ArrowLeft||keys.ArrowRight);
+  if(want&&p.stam>0.02&&!p.tired){p.spd=p.base*1.65;p.stam-=dt*0.3;if(p.stam<=0.02)p.tired=true;if(Math.random()<dt*8)part({t:'poof',x:p.x,y:p.y+4,z:0,vx:rand(-20,20),vy:rand(-10,10),vz:0,life:0.4,s:5});}
+  else{p.spd=p.base;p.stam=Math.min(1,p.stam+dt*(want?0.08:0.2));if(p.stam>0.35)p.tired=false;}
+  // hiding: haystacks, woodpiles, sheds (stand close)
+  let hid=false;for(const q of g.level.props){if((q.type==='hay'||q.type==='woodpile'||q.type==='tree')&&dist(p.x,p.y,q.x,q.y)<(q.type==='tree'?34:(q.sr||20)+26)){hid=true;break;}}
+  if(!hid)for(const b of g.level.buildings)if(b.kind==='shed'&&p.x>b.x-26&&p.x<b.x+b.w+26&&p.y>b.y-26&&p.y<b.y+b.h+26){hid=true;break;}
+  g.hidden=hid&&!(g.car&&g.car.in);}
+ _upd5(dt);if(!G)return;
+ // dialogue box queue
+ if(g.v5say&&g.v5say.length){g.v5sayT-=dt;if(g.v5sayT<=0){dlgShow(g.v5say.shift());g.v5sayT=3.3;}}else if(g.v5sayT!==undefined){g.v5sayT-=dt;if(g.v5sayT<=-0.2){$('v5dlg').classList.remove('on');g.v5sayT=undefined;}}
+ // bubbles timer + random barks
+ if(g.v5bub){for(const b of g.v5bub)b.t-=dt;g.v5bub=g.v5bub.filter(b=>b.t>0&&!(b.o.dead));}
+ g.barkT=(g.barkT===undefined?3:g.barkT)-dt;if(g.barkT<=0){g.barkT=rand(3.5,6.5);const near=g.zombies.filter(z=>!z.dead&&dist(z.x,z.y,p.x,p.y)<420);if(near.length){const z=pick(near);const k=z.type==='tcc'?'bark_t'+ri(0,5):z.type==='nalysnyk'?'nal_sh'+ri(0,3):z.big?null:'bark_a'+ri(0,7);if(k)bubble(z,t(k));}}
+ if(g.v4n)for(const n of g.v4n){if(n.gone)continue;const d=dist(p.x,p.y,n.x,n.y);if(d<150&&!n.greeted){n.greeted=true;bubble(n,t(n.kind==='villager'?'bark_v'+ri(0,5):'bark_n'+ri(0,3)),3);}if(d>320)n.greeted=false;
+  if(n.kind==='villager'){n.wt=(n.wt||0)-dt;if(n.wt<=0){n.wt=rand(2,5);n.tx=n.hx+rand(-80,80);n.ty=n.hy+rand(-60,60);}const dx=n.tx-n.x,dy=n.ty-n.y,dd=Math.hypot(dx,dy);if(dd>6){const e={x:n.x,y:n.y,cr:8};moveE(e,dx/dd*30*dt,dy/dd*30*dt);n.x=e.x;n.y=e.y;n.face=Math.atan2(dy,dx);n.walk=(n.walk||0)+dt;}}}
+ // ТЦК minibus chase while alerted
+ const alerted=g.zombies.some(z=>z.type==='tcc'&&!z.dead&&z.alert);g.chaseT=(g.chaseT===undefined?12:g.chaseT)-dt;
+ if(alerted&&g.chaseT<=0&&!g.result&&g.level.roads.length&&g.vehicles.filter(v=>v.kind==='van').length<2&&curMission!==7){g.chaseT=26;const L=g.level;const r=g.level.roads.reduce((a,b)=>dist(p.x,p.y,b.x+b.w/2,b.y+b.h/2)<dist(p.x,p.y,a.x+a.w/2,a.y+a.h/2)?b:a);
+  const vert=r.h>r.w;const cx=vert?r.x+r.w/2:clamp(p.x,r.x+60,r.x+r.w-60),cy=vert?clamp(p.y,r.y+60,r.y+r.h-60):r.y+r.h/2;const from=vert?{x:cx,y:p.y>L.h/2?-220:L.h+220}:{x:p.x>L.w/2?-220:L.w+220,y:cy};
+  const vv=spawnVan({path:[from,{x:cx,y:cy}],exit:[{x:from.x,y:from.y}],n:2});if(vv)vv.chase=true;toast(t('t_van_chase'),2200);}
+ // giant Румин footsteps
+ for(const z of g.zombies)if(z.type==='rumin'&&!z.dead){const s=Math.floor(z.walkT*7/Math.PI);if(s!==z.stepI){z.stepI=s;G.shake=Math.max(G.shake,6);SFX.thud(z.x,z.y);for(let k=0;k<5;k++)part({t:'poof',x:z.x+rand(-30,30),y:z.y+rand(-10,10),z:0,vx:rand(-50,50),vy:rand(-20,20),vz:0,life:0.6,s:11});}}
+ // HUD
+ const st=$('stam').firstChild;st.style.width=Math.round((p.stam||0)*100)+'%';st.style.background=p.tired?'#ff7b72':'';
+ const ht=$('hideTag');const show=!!g.hidden;if(ht.style.display!==(show?'block':'none')){ht.style.display=show?'block':'none';ht.textContent='🌾 '+t('hidden');}};
+// giant Румин (≈3x a normal man) with a huge health bar
+ZT.rumin.scale=3.1;ZT.rumin.r=42;ZT.rumin.hp=5200;
+const _mz5=makeZombie;makeZombie=function(z){const r=_mz5(z);if(z.type==='rumin'){r.g.scale.setScalar(3.1);r.s=3.1;}if(z.type==='tcc'&&r.handR&&!r.baton){const b=new THREE.Group();mesh(cylG(0.03,0.035,0.62,8),PBM('#111',{roughness:0.5}),0,0,0.28,b,false).rotation.x=Math.PI/2;mesh(cylG(0.04,0.04,0.12,8),PBM('#333'),0,0,0.02,b,false).rotation.x=Math.PI/2;b.position.set(0,-0.08,0);b.rotation.x=Math.PI/2;r.handR.add(b);r.baton=b;}return r;};
+// ТЦК baton animation (after sync2 kick anim)
+const _sync5=sync2;sync2=function(dt){_sync5(dt);const g=G;for(const z of g.zombies){const r=z.vis;if(!r||z.dead||z.type!=='tcc')continue;r.legR.rotation.x=r.legR.rotation.x;
+  if(z.swing>0){const k=1-z.swing/0.55;r.armR.rotation.set(k<0.6?lerp(-0.4,-2.9,k/0.6):lerp(-2.9,-0.6,Math.min(1,(k-0.6)/0.15)),0,k<0.6?-0.3:0.4);r.torso.rotation.y=k<0.6?0.3:-0.3;}
+  else if(z.alert){const s=Math.sin(z.walkT*7);r.armR.rotation.set(-0.9+s*0.2,0,0);r.torso.rotation.y=0;}}
+ // glow sprites for lamps (cheap bloom)
+ if(g.level.dark>0.3)for(const l of g.level.lamps){if(!l.g||l.glow)continue;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:circleTex(),color:0xffd890,transparent:true,opacity:0.75,blending:THREE.AdditiveBlending,depthWrite:false}));sp.scale.set(3.2,3.2,1);const b=l.g.userData.bulb;if(b){b.getWorldPosition(sp.position);g.scene.add(sp);l.glow=sp;}}
+ for(const l of g.level.lamps)if(l.glow)l.glow.visible=!!(l.pool&&l.pool.visible);};
+// overlay: speech bubbles + big Румин bar + hidden indicator
+const _do5=drawOverlay;drawOverlay=function(){_do5();if(!G||!(state==='play'||state==='pause'))return;const c=octx,g=G;c.textAlign='center';c.textBaseline='middle';
+ for(const b of (g.v5bub||[])){const o=b.o;const h=(o.scale?66*o.scale:95)+(typeof hillH==='function'?hillH(o.x,o.y)/U:0);const s=proj(o.x,o.y,h);if(s.z>1)continue;c.font='bold 13px sans-serif';const w=Math.min(220,c.measureText(b.txt).width+20);
+  c.globalAlpha=Math.min(1,b.t*3);c.fillStyle='rgba(255,255,255,.95)';rr(c,s.x-w/2,s.y-30,w,26,12);c.fill();c.beginPath();c.moveTo(s.x-6,s.y-5);c.lineTo(s.x+6,s.y-5);c.lineTo(s.x,s.y+4);c.fill();c.fillStyle='#111';c.fillText(b.txt,s.x,s.y-17,w-12);c.globalAlpha=1;}
+ const ru=g.zombies.find(z=>z.type==='rumin'&&!z.dead);if(ru){const bw=Math.min(W*0.9,560),bx=(W-bw)/2,by=W>H?H-44:126;c.fillStyle='rgba(0,0,0,.85)';rr(c,bx-4,by-4,bw+8,30,10);c.fill();c.fillStyle='#4a0000';c.fillRect(bx,by,bw,22);
+  const gr=c.createLinearGradient(bx,0,bx+bw,0);gr.addColorStop(0,'#ff3b2f');gr.addColorStop(1,'#ffb020');c.fillStyle=gr;c.fillRect(bx,by,bw*ru.hp/ru.maxHp,22);c.fillStyle='#fff';c.font='bold 14px sans-serif';c.fillText('☠ '+t('boss_rumin')+' ☠',W/2,by+11);}};
+// ambient villagers (with barks) in village levels
+function addVillagers(n){const L=G.level,p=G.player;for(let k=0;k<n;k++){for(let j=0;j<30;j++){const x=rand(60,L.w-60),y=rand(60,L.h-60);if(solidAt(x,y,14)||dist(x,y,p.x,p.y)<250)continue;(G.v4n=G.v4n||[]).push({kind:'villager',x,y,hx:x,hy:y,r:12,k:0,face:rand(0,6),name:'n_vill'+ri(0,4),act:()=>null});break;}}}
+NPCMK.villager=makeVillagerRig;
+const _sm5=_startM5;
+const _stm5b=startMission;startMission=function(i,force){const r=_stm5b(i,force);if(G&&G.mission===i&&state==='play'&&!G.v5vill){G.v5vill=1;if(i<6||i>=8&&i<=11)addVillagers(i===4?0:3);}return r;};
+const _sync5b=sync2;sync2=function(dt){_sync5b(dt);for(const n of (G.v4n||[])){if(n.kind!=='villager'||!n.vis)continue;const s=Math.sin((n.walk||0)*9);n.vis.legL.rotation.x=s*0.5;n.vis.legR.rotation.x=-s*0.5;}};
+
+// ================= v5 WORLD: colour grade, mountains, forest belt, birds, lakes + swimming, car button, Хмельницький (second chance) =================
+// ---- vivid palette ----
+HATA_WALLS.splice(0,HATA_WALLS.length,'#ffe9a8','#9fd3ff','#ffc6a8','#c8f0a0','#f7f3e8','#b8e0ff','#ffd27a','#f7c0dc','#a8f0e0');
+HOUSE_COLS.splice(0,HOUSE_COLS.length,'#ffcf8a','#fff0a0','#a8d8ff','#ff9f8a','#c8f0a0','#ffb8e0','#ffe0b0','#9ff0d8');
+(function(){const s=document.createElement('style');s.textContent=`canvas#gl{filter:saturate(1.42) contrast(1.08) brightness(1.03)!important}
+#bCar{width:62px;height:62px;right:calc(env(safe-area-inset-right) + 196px);bottom:calc(env(safe-area-inset-bottom) + 176px);background:radial-gradient(circle at 40% 35%,#4fc3ff,#0b5a8a)!important;display:none;font-size:11px}
+#khmScr .k1{font-size:26px;font-weight:900;color:#ffd23f;text-align:center;margin-bottom:6px}#khmScr p{color:#d8dee9;line-height:1.5}#khmScr .flag{height:8px;border-radius:4px;background:linear-gradient(#2a7fff 50%,#ffd500 50%);margin:8px 0 12px}`;document.head.appendChild(s);})();
+const _al5=applyLighting;applyLighting=function(G,force){const R=G.r,d=G.level.dark;const was=R.lastD;_al5(G,force);if(R.lastD===was&&!force&&was!==undefined)return;
+ R.hemi.color=lerpC(0xcfe6ff,0x445577,d);R.hemi.groundColor=lerpC(0x6f9a3a,0x111418,d);R.hemi.intensity*=1.08;
+ if(d<0.5)R.dir.color=lerpC(0xffe2a8,0xff8a4a,d*2);
+ const bg=d<0.4?lerpC(0x4aa6ff,0xff8a50,d/0.4):lerpC(0xff8a50,0x050816,(d-0.4)/0.6);G.scene.background=bg;if(G.scene.fog)G.scene.fog.color=bg;};
+// ---- landscape: outer ground, Carpathian foothills, forest belt, birds ----
+function v5landscape(G){const L=G.level,sc=G.scene,W=L.w*U,H=L.h*U,lo=lowQ();
+ const og=new THREE.Mesh(new THREE.PlaneGeometry(900,900),new THREE.MeshLambertMaterial({color:L.dirt?0x5f9a35:0x5a9a3a}));og.rotation.x=-Math.PI/2;og.position.set(W/2,-0.06,H/2);sc.add(og);
+ // foothills
+ const hg=new THREE.SphereGeometry(1,lo?10:18,lo?6:10,0,Math.PI*2,0,Math.PI/2);const cols=[];const pc=hg.attributes.position;const c1=new THREE.Color('#3f9a3a'),c2=new THREE.Color('#2a6a3a'),c3=new THREE.Color('#7fa8c8');
+ for(let i=0;i<pc.count;i++){const y=pc.getY(i);const c=y<0.6?c1.clone().lerp(c2,y/0.6):c2.clone().lerp(c3,(y-0.6)/0.4);cols.push(c.r,c.g,c.b);}hg.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));
+ const hm=new THREE.MeshLambertMaterial({vertexColors:true});const n=lo?14:26,ring=[];
+ for(let k=0;k<n;k++){const side=k%4;const f=((k*0.618)%1);let x,z;const off=rand(26,60);if(side===0){x=f*W;z=-off;}else if(side===1){x=f*W;z=H+off;}else if(side===2){x=-off;z=f*H;}else{x=W+off;z=f*H;}
+  const r=rand(18,38),h=rand(10,26);const m=new THREE.Mesh(hg,hm);m.scale.set(r,h,r*rand(0.7,1.2));m.position.set(x,-0.5,z);sc.add(m);ring.push([x,z,r]);}
+ // forest belt (instanced conifers + round trees)
+ const N=lo?120:380;const cone=new THREE.ConeGeometry(1,2.6,lo?5:7);cone.translate(0,2.2,0);const trunk=new THREE.CylinderGeometry(0.18,0.24,1,5);trunk.translate(0,0.5,0);
+ const im=new THREE.InstancedMesh(cone,new THREE.MeshLambertMaterial({color:0xffffff}),N),it=new THREE.InstancedMesh(trunk,new THREE.MeshLambertMaterial({color:0x6a4424}),N);const o=new THREE.Object3D();const tc=new THREE.Color();
+ for(let i=0;i<N;i++){const side=i%4,f=Math.random();const off=rand(3.5,30);let x,z;if(side===0){x=f*(W+40)-20;z=-off;}else if(side===1){x=f*(W+40)-20;z=H+off;}else if(side===2){x=-off;z=f*H;}else{x=W+off;z=f*H;}
+  const s=rand(0.9,1.9);o.position.set(x,0,z);o.rotation.set(0,rand(0,6),0);o.scale.set(s,s*rand(0.9,1.3),s);o.updateMatrix();im.setMatrixAt(i,o.matrix);it.setMatrixAt(i,o.matrix);im.setColorAt(i,tc.set(pick(['#2f8a3a','#3aa04a','#25703a','#4caf50','#1f7a45'])));}
+ sc.add(im);sc.add(it);
+ // birds
+ const bg=new THREE.BufferGeometry();bg.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0.25, -1,0.0,-0.1, 0,0,-0.25, 0,0,0.25, 1,0.0,-0.1, 0,0,-0.25],3));bg.computeVertexNormals();
+ const bm=new THREE.MeshBasicMaterial({color:0x1a1a22,side:THREE.DoubleSide});G.r.birds=[];
+ for(let f=0;f<(lo?1:3);f++){const fl={x:rand(0,W),z:rand(0,H),a:rand(0,6),y:rand(7,10),v:rand(4,6),b:[]};for(let k=0;k<(lo?6:10);k++){const m=new THREE.Mesh(bg,bm);m.userData={ox:(k%2?1:-1)*Math.ceil(k/2)*0.9,oz:-Math.ceil(k/2)*0.8,ph:rand(0,6)};m.scale.setScalar(0.35);sc.add(m);fl.b.push(m);}G.r.birds.push(fl);}
+ // lakes
+ for(const pd of (L.ponds||[]))v5pondMesh(G,pd);}
+function waterTex(){if(V3.T.water5)return V3.T.water5;const t=texCanvas(256,256,(c,w,h)=>{const g=c.createLinearGradient(0,0,w,h);g.addColorStop(0,'#1e88e5');g.addColorStop(1,'#26c6da');c.fillStyle=g;c.fillRect(0,0,w,h);
+ for(let i=0;i<90;i++){c.strokeStyle='rgba(255,255,255,'+rand(0.08,0.3)+')';c.lineWidth=rand(1,2.5);const x=rand(0,w),y=rand(0,h),l=rand(10,30);c.beginPath();c.moveTo(x,y);c.quadraticCurveTo(x+l/2,y-4,x+l,y);c.stroke();}});t.wrapS=t.wrapT=THREE.RepeatWrapping;V3.T.water5=t;return t;}
+function v5pondMesh(G,pd){const sc=G.scene,r=pd.r*U;const t=waterTex().clone();t.needsUpdate=true;t.repeat.set(r/3,r/3);
+ const sand=new THREE.Mesh(new THREE.CircleGeometry(r+1.1,40),new THREE.MeshLambertMaterial({color:0xd9c27a}));sand.rotation.x=-Math.PI/2;sand.position.set(pd.x*U,0.045,pd.y*U);sand.scale.set(1,pd.ry?pd.ry/pd.r:1,1);sc.add(sand);
+ const wm=new THREE.MeshStandardMaterial({color:0xffffff,map:t,roughness:0.12,metalness:0.25,transparent:true,opacity:0.9,emissive:0x0a3a6a,emissiveIntensity:0.35});
+ const w=new THREE.Mesh(new THREE.CircleGeometry(r,48),wm);w.rotation.x=-Math.PI/2;w.position.set(pd.x*U,0.06,pd.y*U);w.scale.set(1,pd.ry?pd.ry/pd.r:1,1);w.receiveShadow=true;sc.add(w);pd.tex=t;
+ const reed=PBM('#6a8a2a',{roughness:1});const k=lowQ()?8:22;for(let i=0;i<k;i++){const a=rand(0,6.28),rr=r+rand(0.2,0.9);const m=mesh(cylG(0.03,0.05,rand(0.8,1.6),4),reed,pd.x*U+Math.cos(a)*rr,0.5,pd.y*U+Math.sin(a)*rr*(pd.ry?pd.ry/pd.r:1),sc,false);m.rotation.z=rand(-0.2,0.2);}
+ if(!lowQ())for(let i=0;i<5;i++){const a=rand(0,6.28),rr=rand(0.2,0.7)*r;const lp=mesh(cylG(0.45,0.45,0.03,10),PBM('#3a9a3a',{roughness:0.8}),pd.x*U+Math.cos(a)*rr,0.08,pd.y*U+Math.sin(a)*rr,sc,false);}}
+const _bw5=buildWorld2;buildWorld2=function(G){const r=_bw5.apply(this,arguments);try{v5landscape(G);}catch(e){console.warn('v5land',e);}return r;};
+function inPond(x,y,m){for(const pd of (G.level.ponds||[])){const ry=pd.ry||pd.r;const dx=(x-pd.x)/(pd.r-(m||0)),dy=(y-pd.y)/(ry-(m||0));if(dx*dx+dy*dy<1)return pd;}return null;}
+function v5placePond(G){const L=G.level,p=G.player;if(L.ponds&&L.ponds.length)return;for(let tr=0;tr<220;tr++){const r=rand(110,170),x=rand(r+60,L.w-r-60),y=rand(r+60,L.h-r-60);
+  if(dist(x,y,p.x,p.y)<r+220)continue;const ov=(q,pad)=>x+r+pad>q.x&&x-r-pad<q.x+q.w&&y+r+pad>q.y&&y-r-pad<q.y+q.h;
+  if((L.roads||[]).concat(L.walks||[],L.pave||[],L.buildings||[]).some(q=>ov(q,40)))continue;if(L.solids.some(q=>ov(q,30)))continue;
+  if((G.crates||[]).some(c=>dist(c.x,c.y,x,y)<r+40)||(G.v4n||[]).some(c=>dist(c.x,c.y,x,y)<r+60)||(G.v4it||[]).some(c=>dist(c.x,c.y,x,y)<r+40))continue;
+  L.ponds=[{x,y,r}];L.props=L.props.filter(q=>dist(q.x,q.y,x,y)>r+20);return;}}
+// ---- swimming, car button, chase vans, birds/water animation ----
+const _up5w=update;update=function(dt){const g=G;if(!g||!g.player||state!=='play'){_up5w(dt);return;}const p=g.player,px=p.x,py=p.y,c=g.car,cx=c&&c.x,cy=c&&c.y;
+ _up5w(dt);if(G!==g)return;
+ if(c&&c.in&&inPond(c.x,c.y,-20)){c.x=cx;c.y=cy;c.spd*=-0.2;p.x=c.x;p.y=c.y;}
+ const pd=!(c&&c.in)&&!p.dead&&inPond(p.x,p.y,12);
+ if(pd){if(!p.swim){p.swim=true;toast(t('t_swim'),1800);SFX.whoosh&&SFX.whoosh(p.x,p.y,0.6);for(let k=0;k<14;k++)part({t:'powder',x:p.x+rand(-14,14),y:p.y+rand(-14,14),z:4,vx:rand(-90,90),vy:rand(-90,90),vz:rand(80,200),life:0.6,s:5});}
+  p.x=px+(p.x-px)*0.55;p.y=py+(p.y-py)*0.55;const mv=Math.hypot(p.x-px,p.y-py);if(mv>0.3&&Math.random()<dt*14)part({t:'powder',x:p.x+rand(-10,10),y:p.y+rand(-8,8),z:2,vx:rand(-40,40),vy:rand(-40,40),vz:rand(30,90),life:0.45,s:4});}
+ else if(p.swim){p.swim=false;}
+ for(const z of g.zombies)if(!z.dead&&!z.big&&inPond(z.x,z.y,10)){z.x-=(z.x-(z.px5||z.x))*0.5;z.y-=(z.y-(z.py5||z.y))*0.5;}for(const z of g.zombies){z.px5=z.x;z.py5=z.y;}
+ // car button
+ const bc=$('bCar');if(bc){const show=c&&!c.locked&&!p.dead&&(c.in||dist(p.x,p.y,c.x,c.y)<120);if(bc._s!==show){bc._s=show;bc.style.display=show?'flex':'none';}if(show){const lab=c.in?'🚪<br>'+t('act_exit'):'🚗<br>'+t('b_car');if(bc._l!==lab){bc._l=lab;bc.innerHTML=lab;}}}
+ // chasing vans home in on the player
+ for(const v of g.vehicles)if(v.chase&&v.state==='drive'&&v.path&&v.path.length>1){v.rt=(v.rt||0)-dt;if(v.rt<=0&&dist(v.x,v.y,p.x,p.y)>160){v.rt=1.2;v.path[v.path.length-1]={x:p.x,y:p.y};}}
+ // flags
+ if(g.v5fl){for(const f of g.v5fl){if(f.land){f.lt-=dt;continue;}f.t+=dt;const s=Math.min(1,f.t/f.T);f.x=lerp(f.x0,f.x1,s);f.y=lerp(f.y0,f.y1,s);f.h=4*70*s*(1-s)+20*(1-s);
+   if(s>=1){f.land=true;f.lt=5;SFX.thud(f.x,f.y);if(!p.dead&&dist(f.x,f.y,p.x,p.y)<36){hurtPlayer(Math.round(11*DIFF.dmg[dI()]));floatText(p.x,p.y-60,t('flag_hit'),'#ffd500');}}}
+  g.v5fl=g.v5fl.filter(f=>!f.land||f.lt>0);}};
+(function(){const b=document.createElement('button');b.className='cb';b.id='bCar';$('btns').appendChild(b);
+ const go=e=>{e.preventDefault();e.stopPropagation();if(G&&G.car&&!G.car.locked&&state==='play'){carToggle();}};b.addEventListener('touchstart',go,{passive:false});b.addEventListener('mousedown',go);})();
+document.addEventListener('keydown',e=>{if(e.code==='KeyG'&&state==='play'&&G&&G.car&&!G.car.locked&&(G.car.in||dist(G.player.x,G.player.y,G.car.x,G.car.y)<120)&&!e.repeat){carToggle();}});
+function makeFlag3(){const g=new THREE.Group();mesh(cylG(0.025,0.03,1.3,5),PBM('#7a5a32'),0,0.65,0,g,false);
+ const t=V3.T.uaflag||(V3.T.uaflag=texCanvas(64,40,(c,w,h)=>{c.fillStyle='#1f6fff';c.fillRect(0,0,w,h/2);c.fillStyle='#ffd500';c.fillRect(0,h/2,w,h/2);}));
+ const m=new THREE.Mesh(new THREE.PlaneGeometry(0.75,0.48),new THREE.MeshLambertMaterial({map:t,side:THREE.DoubleSide}));m.position.set(0.39,1.05,0);g.add(m);g.userData.cloth=m;return g;}
+const _sy5w=sync2;sync2=function(dt){_sy5w(dt);const g=G;if(!g||!g.r)return;const p=g.player;
+ if(p&&p.vis&&p.swim){p.vis.g.position.y-=0.8;}
+ for(const pd of (g.level.ponds||[]))if(pd.tex){pd.tex.offset.x+=dt*0.02;pd.tex.offset.y+=dt*0.013;}
+ if(g.r.birds){const W=g.level.w*U,H=g.level.h*U;for(const fl of g.r.birds){fl.a+=Math.sin(T*0.3+fl.y)*dt*0.2;fl.x+=Math.cos(fl.a)*fl.v*dt;fl.z+=Math.sin(fl.a)*fl.v*dt;if(fl.x<-40)fl.x=W+30;if(fl.x>W+40)fl.x=-30;if(fl.z<-40)fl.z=H+30;if(fl.z>H+40)fl.z=-30;
+   const ca=Math.cos(fl.a),sa=Math.sin(fl.a);for(const m of fl.b){const u=m.userData;m.position.set(fl.x+u.oz*ca-u.ox*sa,fl.y+Math.sin(T*1.3+u.ph)*0.3,fl.z+u.oz*sa+u.ox*ca);m.rotation.set(0,-fl.a+Math.PI/2,0);m.scale.set(0.35,0.35+0.25*Math.sin(T*9+u.ph),0.35);}}}
+ if(g.v5fl)for(const f of g.v5fl){const v=vreg(f,'vis',makeFlag3);v.position.set(f.x*U,(f.h||0)*U,f.y*U);if(!f.land){v.rotation.set(0,0,T*9);}else{v.rotation.set(0,f.rot||0,0);v.userData.cloth.rotation.y=Math.sin(T*4+f.x)*0.3;}}
+ // flaggers hold a flag
+ for(const z of g.zombies)if(z.type==='flagger'&&z.vis&&z.vis.handR&&!z.vis.flag){z.vis.flag=makeFlag3();z.vis.flag.scale.setScalar(0.9);z.vis.flag.rotation.x=Math.PI/2;z.vis.flag.position.set(0,-0.05,0);z.vis.handR.add(z.vis.flag);}
+ // camera boost while driving
+};
+// ---- angry locals throwing blue-yellow flags ----
+ZT.flagger={hp:70,spd:[70,92],dmg:9,tc:[99,99],r:13,scale:1};
+const _mz5w=makeZombie;makeZombie=function(z){if(z.type==='flagger'){const r=_mz5w(Object.assign({},z,{type:'walker'}));return r;}return _mz5w(z);};
+V4AI.flagger=function(z,tg,d,dt,i){const p=G.player;z.ft=(z.ft===undefined?rand(0.8,2):z.ft)-dt;z.pc=(z.pc||0)-dt;z.wantFace=Math.atan2(tg.y-z.y,tg.x-z.x);
+ if(z.ft<=0&&d>90&&d<440&&tg===p&&!p.dead){z.ft=rand(1.8,3.2);const T2=0.9+d/700;const lx=p.x+(p.vx||0)*0.4+rand(-25,25),ly=p.y+(p.vy||0)*0.4+rand(-25,25);(G.v5fl=G.v5fl||[]).push({x0:z.x,y0:z.y,x1:lx,y1:ly,x:z.x,y:z.y,t:0,T:T2,h:20,rot:rand(0,6)});SFX.whoosh&&SFX.whoosh(z.x,z.y,0.5);
+  if(Math.random()<0.35)bubble(z,t('bark_f'+ri(0,4)),2);if(z.vis&&z.vis.flag)z.vis.flag.visible=false;setTimeout(()=>{if(z.vis&&z.vis.flag)z.vis.flag.visible=true;},700);return;}
+ if(d<z.r+tg.r+18){if(z.pc<=0){z.pc=1.1;hitP(z,tg,z.dmg,220,'walker');SFX.thud(z.x,z.y);}return;}
+ stepToward(z,tg.x,tg.y,d<160?z.spd*1.1:z.spd,dt,i);};
+// ---- city buildings ----
+function winGridTex(col,cols,rows){const k='wg'+col+cols+rows;if(V3.T[k])return V3.T[k];const t=texCanvas(256,256,(c,w,h)=>{c.fillStyle=col;c.fillRect(0,0,w,h);const cw=w/cols,rh=h/rows;
+ for(let i=0;i<cols;i++)for(let j=0;j<rows;j++){c.fillStyle='#f4f4f4';c.fillRect(i*cw+cw*0.16,j*rh+rh*0.18,cw*0.68,rh*0.6);c.fillStyle=Math.random()<0.25?'#ffd98a':'#3a6a9a';c.fillRect(i*cw+cw*0.22,j*rh+rh*0.24,cw*0.56,rh*0.48);c.fillStyle='rgba(255,255,255,.35)';c.fillRect(i*cw+cw*0.22,j*rh+rh*0.24,cw*0.2,rh*0.48);}});V3.T[k]=t;return t;}
+BK2.cblock=(b,w,d,h)=>{const g=new THREE.Group();const fl=Math.max(3,Math.round(h/2.6));const tx=winGridTex(b.col,Math.max(2,Math.round(w/2.4)),fl);const tz=winGridTex(b.col,Math.max(2,Math.round(d/2.4)),fl);
+ const mw=new THREE.MeshStandardMaterial({map:tx,roughness:0.8}),md=new THREE.MeshStandardMaterial({map:tz,roughness:0.8}),top=PBM('#6a6a70',{roughness:0.9});
+ mesh(new THREE.BoxGeometry(w,h,d),[md,md,top,top,mw,mw],0,h/2,0,g);
+ const par=PBM('#e8e4dc');for(const [x,z,ww,dd] of [[0,d/2,w,0.25],[0,-d/2,w,0.25],[w/2,0,0.25,d],[-w/2,0,0.25,d]])mesh(new THREE.BoxGeometry(ww,0.6,dd),par,x,h+0.3,z,g);
+ if(!lowQ()){const bal=PBM('#f0ece4');for(let j=1;j<fl;j++)for(let i=0;i<Math.round(w/4.8);i++)mesh(new THREE.BoxGeometry(1.6,0.12,0.6),bal,-w/2+2.4+i*4.8,j*h/fl,d/2+0.3,g,false);}
+ mesh(new THREE.BoxGeometry(1.4,2.2,0.2),PBM('#5a3a24'),0,1.1,d/2+0.05,g,false);mesh(new THREE.BoxGeometry(2.2,0.15,1),PBM('#c8c4bc'),0,2.4,d/2+0.5,g);return g;};
+BK2.plaza=(b,w,d,h)=>{const g=new THREE.Group();const white=new THREE.MeshStandardMaterial({color:0xf6f6f2,roughness:0.55}),glass=new THREE.MeshStandardMaterial({color:0x5fa8e8,roughness:0.08,metalness:0.6,emissive:0x0a2a4a,emissiveIntensity:0.4});
+ mesh(new THREE.BoxGeometry(w,h,d),white,0,h/2,0,g);
+ for(let j=0;j<3;j++)mesh(new THREE.BoxGeometry(w*0.96,1.1,0.2),glass,0,2.2+j*(h-4)/3,d/2+0.08,g,false);
+ mesh(new THREE.BoxGeometry(w*0.3,3.2,0.6),glass,0,1.6,d/2+0.2,g,false);mesh(new THREE.BoxGeometry(w*0.38,0.3,2.2),white,0,3.4,d/2+1.1,g);
+ for(const s of [-1,1])mesh(cylG(0.25,0.25,3.3,10),white,s*w*0.17,1.65,d/2+2,g);
+ mesh(new THREE.BoxGeometry(w+0.4,0.7,d+0.4),white,0,h+0.35,0,g);
+ const tt=texCanvas(1024,256,(c,W2,H2)=>{c.clearRect(0,0,W2,H2);c.font='900 200px Arial Black,Impact,sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineWidth=14;c.strokeStyle='#0d47a1';c.strokeText('ПЛАЗА',W2/2,H2/2+8);c.fillStyle='#e53935';c.fillText('ПЛАЗА',W2/2,H2/2+8);});
+ const lm=new THREE.MeshStandardMaterial({map:tt,transparent:true,emissive:0xff3030,emissiveMap:tt,emissiveIntensity:0.5,roughness:0.4});
+ const pl=new THREE.Mesh(new THREE.PlaneGeometry(w*0.75,w*0.75/4),lm);pl.position.set(0,h*0.72,d/2+0.12);g.add(pl);
+ const pr=new THREE.Mesh(new THREE.PlaneGeometry(w*0.75,w*0.75/4),lm);pr.position.set(0,h+0.7+w*0.75/8,0);g.add(pr);
+ const pr2=pr.clone();pr2.rotation.y=Math.PI;g.add(pr2);return g;};
+// ---- Хмельницький: second chance after death ----
+REWARD.push(100);
+MISSIONS.push({id:'khm',col:'#f6f6f2',roof:'#1f6fff',setup(G){
+ const L=newLevel(2400,2400,0.12);L.grass='#5aa83a';L.fogK=1.7;
+ const R=[100,800,1500,2300];for(const X of R){L.roads.push({x:X-70,y:0,w:140,h:2400});L.walks.push({x:X-100,y:0,w:30,h:2400},{x:X+70,y:0,w:30,h:2400});}
+ for(const Y of [100,800,1500])L.roads.push({x:0,y:Y-70,w:2400,h:140});L.roads.push({x:0,y:2200-70,w:2400,h:140});
+ const vivid=['#ff8a65','#ffd54f','#4fc3f7','#81c784','#ba68c8','#f06292','#ffb74d','#4db6ac'];
+ const BX=[[200,200],[900,200],[1600,200],[200,900],[1600,900],[200,1600],[1600,1600]];
+ for(const [bx,by] of BX){addB(L,{kind:'cblock',x:bx+20,y:by+20,w:240,h:200,wallH:rand(160,240),col:pick(vivid)});addB(L,{kind:'cblock',x:bx+320,y:by+20,w:220,h:240,wallH:rand(140,220),col:pick(vivid)});
+  for(let k=0;k<3;k++)addP(L,{type:'tree',x:bx+60+k*170,y:by+430+rand(-20,20),s:rand(0.9,1.2),g:pick(['#2e9d3a','#43a047','#66bb6a'])});}
+ L.pave.push({x:880,y:880,w:540,h:540,col:'#e2dccd'});addB(L,{kind:'plaza',x:960,y:920,w:380,h:240,wallH:300});
+ addB(L,{kind:'fountain',x:1100,y:1260,w:100,h:90,wallH:30});
+ for(const X of R)for(let y=300;y<2300;y+=420)addP(L,{type:'lamp',x:X+90,y});
+ const carC=['#e53935','#1e88e5','#fdd835','#43a047','#8e24aa','#ff7043'];for(let k=0;k<12;k++){const X=pick(R);addP(L,{type:'car',x:X+(Math.random()<0.5?-45:45),y:rand(300,2050),w:50,h:92,col:pick(carC)});}
+ for(const [x,y] of [[460,1300],[620,1320],[1250,640],[600,640]])addP(L,{type:'bench',x,y,w:60,h:0});
+ // the lake (south-centre block) next to the route
+ L.ponds=[{x:1150,y:1850,r:260,ry:220}];treesAround(L,10,[[900,1600,1420,1650],[900,2080,1420,2120]]);
+ finishLevel(L);G.level=L;placeP(G,300,2210);
+ addProp(()=>makeSignpost3([t('st_pm'),t('reg_khm')]),360,2120,{solid:[10,10]});
+ const ke=addNpc('kendi',1150,1215,{name:'n_kendi5'});ke.face=Math.PI/2;
+ const groups=[[700,2050,3],[1150,1560,2],[1520,1900,3],[800,1150,3],[1480,1200,2],[420,1450,2]];
+ for(const [x,y,n] of groups)spawnGroup('flagger',x,y,n,50);
+ stdLoot(G,[['med',700,2240],['drink',1500,2230],['molotov',820,1700]]);
+ G.m={st:0,spawnT:5,
+  target(){return this.st===0?{x:ke.x,y:ke.y+30}:null;},
+  objective(){return this.st===0?t('o_khm0',Math.round(dist(G.player.x,G.player.y,ke.x,ke.y)/10)):t('o_khm1');},
+  update(dt){if(G.result)return;const p=G.player;
+   ke.act=()=>null;if(this.st===0&&dist(p.x,p.y,ke.x,ke.y)<90){this.st=1;this.tt=2.6;for(const z of G.zombies)if(!z.dead)z.burn=99;say([t('d_ke0'),t('d_ke1')]);SFX.jingle&&SFX.jingle(true);}
+   if(this.st===1){this.tt-=dt;p.hp=Math.max(p.hp,1);if(this.tt<=0){this.st=2;if(V5DEATH)v5restore();else win(t('w_khm'));}}
+   this.spawnT-=dt;if(this.st===0&&this.spawnT<=0&&alive()<16){spawnFar('flagger');this.spawnT=rand(2.5,4.5);}}};
+}});
+NPCMK.kendi=makeKendi3;
+let V5DEATH=null;
+function v5restore(){const D=V5DEATH;V5DEATH=null;G=D.G;curMission=D.mission;const p=G.player;p.dead=false;p.deadT=0;p.hp=p.maxHp;p.kx=p.ky=0;p.swim=false;G.result=null;G.endT=0;G.endText='';
+ for(const z of G.zombies)if(!z.dead&&dist(z.x,z.y,p.x,p.y)<260){const a=Math.atan2(z.y-p.y,z.x-p.x);z.x=clamp(p.x+Math.cos(a)*300,20,G.level.w-20);z.y=clamp(p.y+Math.sin(a)*300,20,G.level.h-20);}
+ if(G.car)G.car.in=false;G.camInit=false;hudCache={};buildInv();showScreen('play');toast(t('khm_back'),3000);for(let k=0;k<20;k++)part({t:'powder',x:p.x+rand(-20,20),y:p.y+rand(-20,20),z:rand(0,40),vx:rand(-60,60),vy:rand(-60,60),vz:rand(40,160),life:0.9,s:5});}
+function v5restartStory(){const keep={lang:save.lang,vol:save.vol,mus:save.mus,radio:save.radio,q:save.q,quality:save.quality,diff:save.diff};
+ Object.assign(save,{unlocked:1,done:[],money:0,crossed:false,finished:false,kit:{},owned:{},up:{},cp:{},dog:false,earned:0});for(const k in keep)if(keep[k]!==undefined)save[k]=keep[k];persist();ST=null;}
+const _se5w=showEnd;showEnd=function(){const g=G;
+ if(g&&g.result==='lose'&&g.player&&g.player.dead&&!g.cp&&curMission!==13){V5DEATH={G:g,mission:curMission};state='end';SFX.muteEngines&&SFX.muteEngines();openKhm();return;}
+ if(g&&g.result==='lose'&&curMission===13){V5DEATH=null;v5restartStory();_se5w();$('endText').textContent=t('khm_restart');const bn=$('bNext');if(bn)bn.style.display='none';return;}
+ _se5w();};
+(function(){const d=document.createElement('div');d.id='khmScr';d.className='v5scr';d.innerHTML='<div class="panel"><div class="k1" id="khT"></div><div class="flag"></div><div id="khB"></div><div style="text-align:center;margin-top:14px"><button class="btn g" id="bKhGo"></button></div></div>';document.body.appendChild(d);
+ $('bKhGo').addEventListener('click',()=>{d.classList.remove('on');startMission(13,true);});})();
+function openKhm(){$('khT').textContent='☠ '+t('khm_t');$('khB').innerHTML=t('khm_body');$('bKhGo').textContent='▶ '+t('khm_go');$('khmScr').classList.add('on');}
+// world map: Хмельницький node
+WM.push({id:'khm',x:0.15,y:0.66,m:null,ic:'☠'});REG.push({id:'khm',x:0.15,y:0.66,m:null});REGE.push(['chep','khm']);
+// parked car in other missions once you own one, and wider camera when driving
+const _sm5w=startMission;startMission=function(i,f){const r=_sm5w(i,f);try{if(G&&G.mission===i&&state==='play'&&!G.v5c){G.v5c=1;
+  if(hasCar()&&!G.car&&i!==6&&i!==7&&i!==13&&i!==14){const p=G.player;for(const [dx,dy] of [[70,0],[-70,0],[0,90],[0,-90]]){if(!solidAt(p.x+dx,p.y+dy,30)){v4car(p.x+dx,p.y+dy,-Math.PI/2);break;}}}
+  }}catch(e){console.warn('v5sm',e);}return r;};
+MISSIONS.forEach((m,i)=>{if(i===6||i===7||i===12||i===13)return;const s0=m.setup;m.setup=function(G){s0.call(this,G);try{v5placePond(G);}catch(e){console.warn('pond',e);}};});
+
+// ================= v5 «5 хатка»: giant castle «Мультимедіа», rainbow cloak, Властеліна, tower climb with Василь, trade for Юра =================
+function mmLettersTex(){if(V3.T.mmL)return V3.T.mmL;const t=texCanvas(1024,160,(c,w,h)=>{c.clearRect(0,0,w,h);c.font='900 120px Arial Black,Impact,sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineWidth=12;c.strokeStyle='#ffffff';c.strokeText('МУЛЬТИМЕДІА',w/2,h/2+6);c.fillStyle='#1565ff';c.fillText('МУЛЬТИМЕДІА',w/2,h/2+6);});V3.T.mmL=t;return t;}
+function mmLetters(w){const m=new THREE.MeshStandardMaterial({map:mmLettersTex(),transparent:true,emissive:0x2060ff,emissiveMap:mmLettersTex(),emissiveIntensity:0.7,roughness:0.4,side:THREE.DoubleSide});return new THREE.Mesh(new THREE.PlaneGeometry(w,w*0.156),m);}
+function makeKeep3(){const g=new THREE.Group();const W=15,D=11,H=44;const wt=wallTex('#e4dccb').clone();wt.needsUpdate=true;wt.repeat.set(3,8);const wall=PBM('#e4dccbK',{map:wt,roughness:0.9}),roof=PBM('#4a2a5a',{roughness:0.5,metalness:0.3}),gold=GOLD(),glass=PBM('#7fc4ff',{roughness:0.1,metalness:0.5});
+ mesh(new THREE.BoxGeometry(W,H,D),wall,0,H/2,0,g);for(let y=4;y<H-2;y+=4.2)for(let x=-W/2+2;x<W/2-1;x+=2.8)mesh(new THREE.BoxGeometry(1,2.2,0.2),glass,x,y,D/2+0.06,g,false);
+ for(const [x,z] of [[-W/2,-D/2],[W/2,-D/2],[-W/2,D/2],[W/2,D/2]]){mesh(cylG(1.6,1.8,H+6,14),wall,x,(H+6)/2,z,g);mesh(new THREE.ConeGeometry(2.2,5,14),roof,x,H+8.5,z,g);mesh(cylG(0.07,0.07,2,6),gold,x,H+12,z,g);}
+ for(let x=-W/2;x<=W/2;x+=1.5)mesh(new THREE.BoxGeometry(0.8,1,0.8),wall,x,H+0.5,D/2,g);
+ mesh(new THREE.ConeGeometry(4.5,12,8),roof,0,H+6,0,g);mesh(cylG(0.1,0.1,4,6),gold,0,H+14,0,g);
+ const fl=texCanvas(64,40,(c,w,h)=>{const C=['#e53935','#fb8c00','#fdd835','#43a047','#1e88e5','#8e24aa'];C.forEach((k,i)=>{c.fillStyle=k;c.fillRect(0,i*h/6,w,h/6+1);});});
+ const f=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1.5),new THREE.MeshLambertMaterial({map:fl,side:THREE.DoubleSide}));f.position.set(1.25,H+15,0);g.add(f);g.userData.flag=f;
+ const L=mmLetters(W*1.05);L.position.set(0,H*0.62,D/2+0.15);g.add(L);
+ mesh(new THREE.BoxGeometry(3.2,4.2,0.4),PBM('#3a2418'),0,2.1,D/2+0.1,g,false);mesh(new THREE.BoxGeometry(2.2,H-6,0.3),glass,W/2-2.2,H/2,D/2+0.2,g,false);
+ return g;}
+const _mdk5=makeDashkevich3;makeDashkevich3=function(){const r=_mdk5();const tex=V3.T.rainbow||(V3.T.rainbow=texCanvas(64,128,(c,w,h)=>{const C=['#e53935','#fb8c00','#fdd835','#43a047','#1e88e5','#3949ab','#8e24aa'];C.forEach((k,i)=>{c.fillStyle=k;c.fillRect(i*w/7,0,w/7+1,h);});}));
+ const geo=new THREE.PlaneGeometry(0.78,1.15,4,6);geo.translate(0,-0.575,0);const P=geo.attributes.position;for(let i=0;i<P.count;i++){const x=P.getX(i);P.setZ(i,-Math.abs(x)*0.25);}geo.computeVertexNormals();
+ const cape=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({map:tex,side:THREE.DoubleSide,roughness:0.6}));cape.castShadow=true;const piv=new THREE.Group();piv.position.set(0,0.72,-0.2);piv.add(cape);r.torso.add(piv);r.cape=piv;
+ mesh(cylG(0.32,0.32,0.05,12),PBM('#fdd835'),0,0.74,-0.05,r.torso,false).rotation.x=0.2;return r;};
+function makeVlast3(){const r=rig({skin:'#f2cdb0',hair:'#3a1a4a',hairStyle:'short',eyeCol:'#4a2a6a',top:'#8e24aa',pants:'#6a1b9a',shoes:'#2a0a3a'});
+ const dress=PBM('#9c27b0',{roughness:0.55}),gold=GOLD();mesh(cylG(0.2,0.62,1.05,18),dress,0,0.52,0,r.body);mesh(cylG(0.5,0.62,0.12,18),PBM('#fdd835'),0,0.06,0,r.body,false);
+ const cr=new THREE.Group();r.head.add(cr);cr.position.set(0,0.28,0);mesh(cylG(0.13,0.12,0.08,12,true),gold,0,0,0,cr,false);for(let i=0;i<6;i++){const a=i/6*6.283;mesh(new THREE.ConeGeometry(0.03,0.1,4),gold,Math.cos(a)*0.12,0.08,Math.sin(a)*0.12,cr,false);}
+ mesh(sphG(0.17,10,8,0,6.283,0,1.9),PBM('#3a1a4a',{roughness:0.8}),0,0.06,-0.04,r.head,false).scale.set(1.05,1.25,1.05);
+ const capeG=new THREE.PlaneGeometry(0.7,1.25);capeG.translate(0,-0.62,0);const c=new THREE.Mesh(capeG,new THREE.MeshStandardMaterial({color:0xd81b60,side:THREE.DoubleSide}));const pv=new THREE.Group();pv.position.set(0,0.72,-0.18);pv.rotation.x=0.12;pv.add(c);r.torso.add(pv);r.cape=pv;
+ r.legL.visible=r.legR.visible=false;r.g.scale.setScalar(1.15);return r;}
+function makeCage3(){const g=new THREE.Group();const m=PBM('#5a5a60',{metalness:0.6,roughness:0.4});for(let i=0;i<12;i++){const a=i/12*6.283;mesh(cylG(0.04,0.04,2.4,5),m,Math.cos(a)*0.85,1.2,Math.sin(a)*0.85,g);}
+ mesh(cylG(0.95,0.95,0.12,16),m,0,2.4,0,g);mesh(cylG(0.95,0.95,0.12,16),m,0,0.06,0,g);return g;}
+NPCMK.vasylF=makeVasyl3;NPCMK.yuraF=makeYura3;NPCMK.vlast=makeVlast3;
+function v5follow(n,dt,near){const p=G.player,c=G.car;if(c&&c.in){if(!n.rideCar){n.rideCar=true;n.gone=true;}n.x=c.x;n.y=c.y;return;}
+ if(n.rideCar){n.rideCar=false;n.gone=false;n.x=p.x+30;n.y=p.y+20;}
+ const d=dist(n.x,n.y,p.x,p.y);n.face=Math.atan2(p.y-n.y,p.x-n.x);if(d>(near||55)){const sp=Math.min(230,40+d*1.6);const e={x:n.x,y:n.y,cr:9};moveE(e,(p.x-n.x)/d*sp*dt,(p.y-n.y)/d*sp*dt);n.x=e.x;n.y=e.y;n.walk=(n.walk||0)+dt;}
+ if(d>330){n.far=(n.far||0)+dt;if(n.far>2.5){n.far=0;const a=p.aim+Math.PI;for(const r of [40,60,25]){const x=p.x+Math.cos(a)*r,y=p.y+Math.sin(a)*r;if(!solidAt(x,y,10)){n.x=x;n.y=y;break;}}}}else n.far=0;}
+function unsolid(n){G.level.solids=G.level.solids.filter(s=>s!==n.solid);n.solid=null;}
+// ---- castle mission (12): giant keep + Vasyl escort ----
+let V5KEEP=false;
+(function(){const M12=MISSIONS[12],s12=M12.setup;M12.setup=function(G){s12.call(this,G);
+ addProp(()=>makeKeep3(),1000,150,{solid:[300,230]});addProp(()=>{const g=new THREE.Group();const l=mmLetters(70);l.rotation.y=-Math.PI/2;l.position.set(-0.4,4.2,0);g.add(l);return g;},868,1800);
+ const vs=addNpc('vasylF',670,3400,{name:'n_vasyl'});unsolid(vs);G.v5vs=vs;
+ const M=G.m,o={target:M.target,objective:M.objective,update:M.update};
+ M.onKill=function(z){if(z.type==='dashk'){G.noDrops=true;for(const q of G.zombies)if(!q.dead)q.burn=99;G.shake=20;moneyBurst(z.x,z.y,300,8);toast(t('t_dashk_dead'),2600);this.st=10;say([t('d_vl_k0'),t('d_vl_k1')]);}};
+ M.target=function(){return this.st>=10?{x:1000,y:300}:o.target.call(this);};
+ M.objective=function(){return this.st>=10?t('o_cas2'):o.objective.call(this);};
+ M.update=function(dt){o.update.call(this,dt);if(G.result)return;v5follow(vs,dt);const p=G.player;
+  if(this.st>=10&&!this.go&&dist(p.x,p.y,1000,295)<90){if(dist(vs.x,vs.y,p.x,p.y)<170&&!(G.car&&G.car.in)){this.go=true;V5KEEP=true;toast(t('t_keep_in'),2000);setTimeout(()=>startMission(14,true),600);}else if(!this.warnT||T-this.warnT>3){this.warnT=T;toast(t('t_vasyl_lost'),1800);}}};
+};})();
+// ---- 14: inside the tower: climb 5 floors with Vasyl, trade him to Властеліна for Юра ----
+REWARD.push(950);
+const KF=600,KG=[null,[760,920],[80,240],[760,920],[80,240]];
+function kFloor(y){return clamp(Math.floor((3000-y)/KF),0,4);}
+function makeKeepInt3(){const g=new THREE.Group();const U2=U;const wall=PBM('#d8cfc0',{roughness:0.9}),stone=PBM('#8a8478',{roughness:0.95}),win=new THREE.MeshBasicMaterial({color:0x8fd0ff});
+ const tiles=['#b08a6a','#7a8aa8','#8aa87a','#a87a8a','#c8b070'];
+ for(let k=0;k<5;k++){const tx=tileTex(tiles[k]).clone();tx.needsUpdate=true;tx.repeat.set(920*U2/2,KF*U2/2);const f=new THREE.Mesh(new THREE.PlaneGeometry(920*U2,KF*U2),new THREE.MeshLambertMaterial({map:tx}));f.rotation.x=-Math.PI/2;f.position.set(500*U2,0.05,(3000-KF*k-KF/2)*U2);f.receiveShadow=true;g.add(f);
+  const lab=new THREE.Sprite(new THREE.SpriteMaterial({map:textTex(t('floor_n',k+1),256,64,'rgba(0,0,0,0.55)','#ffd23f'),transparent:true}));lab.scale.set(4,1,1);lab.position.set(160*U2,3.6,(3000-KF*k-KF+60)*U2);g.add(lab);}
+ for(const x of [20,980]){mesh(new THREE.BoxGeometry(40*U2,4.2,3000*U2),wall,x*U2,2.1,1500*U2,g);for(let y=150;y<3000;y+=300)mesh(new THREE.BoxGeometry(0.1,1.6,1.4),win,(x<500?40:960)*U2,2.4,y*U2,g,false);}
+ for(let k=1;k<5;k++){const yd=3000-KF*k,[a,b]=KG[k];for(const [x0,x1] of [[40,a],[b,960]])if(x1>x0)mesh(new THREE.BoxGeometry((x1-x0)*U2,3.4,30*U2),wall,(x0+x1)/2*U2,1.7,yd*U2,g);
+  for(let s=0;s<8;s++)mesh(new THREE.BoxGeometry((b-a)*U2,0.08+s*0.05,0.5),s%2?stone:PBM('#a09a90'),(a+b)/2*U2,0.04+s*0.025,(yd+70-s*20)*U2,g,false);
+  const ar=new THREE.Sprite(new THREE.SpriteMaterial({map:textTex('⬆',64,64,'rgba(0,0,0,0)','#ffd23f'),transparent:true}));ar.scale.set(1.4,1.4,1);ar.position.set((a+b)/2*U2,2.2,yd*U2);g.add(ar);}
+ for(let k=0;k<5;k++)for(const x of [300,700]){mesh(cylG(0.5,0.6,3.6,10),wall,x*U2,1.8,(3000-KF*k-KF/2)*U2,g);}
+ // throne room
+ const red=PBM('#c62828',{roughness:0.9});mesh(new THREE.BoxGeometry(3,0.04,KF*U2*0.8),red,500*U2,0.08,(KF/2)*U2,g,false);
+ mesh(new THREE.BoxGeometry(2.2,0.6,1.6),GOLD(),500*U2,0.3,110*U2,g);mesh(new THREE.BoxGeometry(1.8,2.6,0.3),PBM('#8e24aa'),500*U2,1.6,90*U2,g);
+ const rb=['#e53935','#fb8c00','#fdd835','#43a047','#1e88e5','#8e24aa'];rb.forEach((c,i)=>mesh(new THREE.BoxGeometry(0.9,3.2,0.1),PBM(c),(120+i*150)*U2,2.4,30*U2,g,false));
+ g.position.set(-500*U2,0,-3000*U2);const outer=new THREE.Group();outer.add(g);return outer;}
+MISSIONS.push({id:'keep',col:'#5a1020',roof:'#4a2a5a',setup(G){
+ const L=newLevel(1000,3000,0.32);L.interior=true;L.fogK=2.2;L.grass='#3a3a3a';
+ for(let k=0;k<5;k++)addP(L,{type:'lamp',x:k%2?120:880,y:3000-KF*k-KF/2});
+ finishLevel(L);G.level=L;placeP(G,500,2920);
+ L.solids.push({x:0,y:0,w:40,h:3000},{x:960,y:0,w:40,h:3000});for(let k=1;k<5;k++){const yd=3000-KF*k,[a,b]=KG[k];L.solids.push({x:40,y:yd-15,w:a-40,h:30},{x:b,y:yd-15,w:960-b,h:30});}
+ for(let k=0;k<5;k++)for(const x of [300,700])L.solids.push({x:x-12,y:3000-KF*k-KF/2-12,w:24,h:24});
+ addProp(()=>makeKeepInt3(),500,3000);
+ const vs=addNpc('vasylF',540,2960,{name:'n_vasyl'});unsolid(vs);
+ const vl=addNpc('vlast',500,170,{name:'n_vlast'});vl.face=Math.PI/2;
+ const yu=addNpc('yuraF',760,150,{name:'n_yura5'});unsolid(yu);const cage=addProp(()=>makeCage3(),760,150,{solid:[60,60]});cage.sol=G.level.solids[G.level.solids.length-1];
+ for(let k=0;k<5;k++){const n=k===0?2:k===4?2:3;for(let j=0;j<n;j++){const z=spawnZombie(k===4||Math.random()<0.6?'nalysnyk':'walker',rand(120,880),3000-KF*k-rand(180,480));z.guard={x:z.x,y:z.y};}}
+ G.m={st:0,floor:0,spawnT:9,
+  target(){const p=G.player,k=kFloor(p.y);if(this.st===0){if(k<4){const [a,b]=KG[k+1];return{x:(a+b)/2,y:3000-KF*(k+1)};}return vl;}
+   if(this.st===2){if(k>0){const [a,b]=KG[k];return{x:(a+b)/2,y:3000-KF*k};}return{x:500,y:2960};}if(this.st===3)return yu;if(this.st===4)return{x:500,y:2975};return vl;},
+  objective(){const k=kFloor(G.player.y)+1;return [t('o_kp0',k),t('o_kp1'),t('o_kp2',k),t('o_kp3'),t('o_kp4')][this.st]||'';},
+  update(dt){if(G.result)return;const p=G.player;const k=kFloor(p.y);
+   if(k!==this.floor){this.floor=k;toast(t('floor_n',k+1),1400);if(this.st===0&&k>(this.maxF||0)){this.maxF=k;p.hp=Math.min(p.maxHp,p.hp+20);floatText(p.x,p.y-60,'+20','#7f7');}}
+   if(this.st<=1)v5follow(vs,dt);else if(vs.stay){const e={x:vs.x,y:vs.y,cr:9};const dx=vs.stay.x-vs.x,dy=vs.stay.y-vs.y,dd=Math.hypot(dx,dy);if(dd>4){moveE(e,dx/dd*90*dt,dy/dd*90*dt);vs.x=e.x;vs.y=e.y;}vs.face=Math.PI/2;}
+   if(this.st>=2)v5follow(yu,dt,60);
+   if(this.st===0&&k===4&&dist(p.x,p.y,vl.x,vl.y)<260){this.st=1;say([t('d_vl0'),t('d_vl1')]);}
+   vl.act=()=>this.st===1?(dist(vs.x,vs.y,vl.x,vl.y)<200?'trade':null):null;
+   vl.use=(lab)=>{if(lab==='trade'){this.st=2;vs.stay={x:vl.x+70,y:vl.y+10};say([t('d_vl2'),t('d_vl3'),t('d_vl4'),t('d_yu0')]);G.level.solids=G.level.solids.filter(s=>s!==cage.sol);cage.freed=true;SFX.door&&SFX.door(cage.x,cage.y);SFX.jingle&&SFX.jingle(true);
+     for(let j=0;j<4;j++){const z=spawnZombie('nalysnyk',rand(150,850),rand(700,1100));z.alert=true;}toast(t('t_yura_free'),2400);}};
+   yu.act=()=>this.st===3?'give':null;
+   yu.use=(lab)=>{if(lab==='give'){this.st=4;say([t('d_yu1'),t('d_yu2')]);SFX.glass&&SFX.glass(yu.x,yu.y);floatText(yu.x,yu.y-70,'🍾 +100%','#ffd23f');}};
+   v4npcs(dt);
+   if(this.st===2&&k===0&&p.y>2700)this.st=3;
+   if(this.st===4&&dist(p.x,p.y,500,2975)<70&&dist(yu.x,yu.y,p.x,p.y)<200){G.noDrops=true;for(const z of G.zombies)if(!z.dead)z.burn=99;win(t('w_keep'));}
+   this.spawnT-=dt;if(this.spawnT<=0&&alive()<8){const kk=this.st>=2?Math.max(0,k-1):Math.min(4,k+1);const z=spawnZombie(Math.random()<0.6?'nalysnyk':'runner',rand(120,880),3000-KF*kk-rand(150,450));z.alert=true;this.spawnT=rand(7,11);}}};
+}});
+// completion of 14 also completes «5 хатка» (12)
+const _se5c=showEnd;showEnd=function(){if(G&&G.result==='win'&&curMission===14&&!save.done.includes(12))save.done.push(12);_se5c();if(curMission===14&&$('bNext'))$('bNext').style.display='none';};
+const _cl5c=typeof curLoc==='function'?curLoc:null;
+// sync: capes, flags, cage visibility, landscape off indoors
+const _sy5c=sync2;sync2=function(dt){_sy5c(dt);const g=G;if(!g)return;
+ for(const z of g.zombies)if(z.type==='dashk'&&z.vis&&z.vis.cape){const mv=z.moving||z.vx||z.vy?0.35:0;z.vis.cape.rotation.x=0.18+mv+Math.sin(T*3.2+z.x*0.01)*0.12;z.vis.cape.rotation.z=Math.sin(T*2.1)*0.06;}
+ for(const n of (g.v4n||[]))if(n.vis&&n.vis.cape){n.vis.cape.rotation.x=0.12+Math.sin(T*2.4)*0.07;}
+ for(const pr of (g.v4p||[])){if(pr.freed&&pr.vis)pr.vis.visible=false;if(pr.vis&&pr.vis.userData.flag)pr.vis.userData.flag.rotation.y=Math.sin(T*3)*0.4;}};
+const _vl5=v5landscape;v5landscape=function(G){if(G.level.interior)return;_vl5(G);};
+Object.assign(window.SHOWX=window.SHOWX||{},{vlast:makeVlast3,dashk5:()=>makeDashkevich3(),tccb:()=>makeZombie({type:'tcc'}),vill:()=>makeVillagerRig(),flagger:()=>makeZombie({type:'flagger'}),ruminG:()=>{const r=makeZombie({type:'rumin'});r.keepS=1;r.s=3.1;return r;},viktor2:()=>{const r=makeViktor();return r;}});
 
 // ================= LOOP =================
 let lastTs=0;

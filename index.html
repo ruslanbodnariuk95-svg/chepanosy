@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0b1026">
-<title>The Legend of Yura America — ЧЕПОНОСИ 3D v3</title>
+<title>The Legend of Yura America — ЧЕПОНОСИ 3D v4</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none;font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;color:#fff;-webkit-tap-highlight-color:transparent}
@@ -791,7 +791,10 @@ function buildHead(r,o,skinM){const H=PB(),hc=0.17;
   else if(k==='shtreimel'){const fur=PBM('#fff',{map:furTex3(),roughness:1});H.add(latheG('sht',[[0.0,0.0],[0.2,0.0],[0.235,0.03],[0.245,0.075],[0.228,0.115],[0.17,0.135],[0.13,0.14]],22),fur,0,hc+0.1,0);
    H.add(sphG(0.15,16,8,0,Math.PI*2,0,Math.PI*0.42),PBM('#0c0c0e',{roughness:0.5}),0,hc+0.135,0,0,0,0,1,0.9,1);}
   else if(k==='scarf'){H.add(headG(0.168,'sc',0,Math.PI*2,0,Math.PI*0.62),hm,0,hc+0.004,-0.012,-0.38);H.add(sphG(0.04,8,6),hm,0,hc-0.12,0.06);H.add(taperG(0.03,0.02,0.12,6),hm,0.02,hc-0.13,0.07,0.3,0,0.3);}
+  else if(k==='beret'){H.add(sphG(0.17,16,8,0,Math.PI*2,0,Math.PI*0.5),hm,0.02,hc+0.1,-0.01,-0.15,0,0.22,1.08,0.45,1.05);H.add(torG(0.152,0.014,5,18),hm,0,hc+0.095,0,Math.PI/2-0.12,0,0,1,1.08,1);if(hat.badge)H.add(sphG(0.022,8,6),PBM(hat.badge,{metalness:0.7,roughness:0.3}),-0.07,hc+0.12,0.14,0,0,0,1,1,0.4);}
+  else if(k==='straw'){const sm=PBM('#d8b868',{roughness:0.95});H.add(latheG('straw',[[0.0,0.0],[0.31,0.0],[0.32,0.01],[0.17,0.03],[0.155,0.14],[0.13,0.17],[0,0.175]],20),sm,0,hc+0.07,0,-0.08);H.add(torG(0.158,0.014,5,18),PBM(hat.band||'#8a2020'),0,hc+0.11,0,Math.PI/2-0.08);}
   else if(k==='crown'){const gm=GOLD();H.add(cylG(0.15,0.14,0.07,16,true),gm,0,hc+0.15,0);for(let i=0;i<7;i++){const a=i/7*Math.PI*2;H.add(new THREE.ConeGeometry(0.03,0.09,6),gm,Math.sin(a)*0.15,hc+0.22,Math.cos(a)*0.15);}}}
+ if(o.shades){const sh=PBM('#0c0c10',{roughness:0.1,metalness:0.6});for(const s of [1,-1])H.add(rboxG(0.06,0.036,0.012,0.01),sh,s*0.047,hc+0.02,0.148);H.add(rboxG(0.03,0.008,0.01,0.003),sh,0,hc+0.03,0.15);for(const s of [1,-1])H.add(rboxG(0.006,0.008,0.12,0.003),sh,s*0.08,hc+0.025,0.09);}
  pbBuild(H,'HD'+r.key,r.head,r.meshes);
  const EG=PB(),eyeM=PBM(o.eyeCol||'#3a2a1c',{roughness:0.25});for(const s of [1,-1])EG.add(sphG(0.0115,8,6),eyeM,s*0.047,0.17+0.018,0.1355);
  const em=pbBuild(EG,'EY',r.head,null,false)[0];r.eyes=[em];r.eyeM=eyeM;em.userData.m0=eyeM;}
@@ -1115,7 +1118,7 @@ function attack(){
   if(hit){SFX.splat(p.x,p.y);G.shake=Math.max(G.shake,3);}
   return;}
  if(p.ammo[p.wi]<=0){p.cd=0.3;SFX.empty();floatText(p.x,p.y-50,t('no_ammo'),'#f66');
-  for(let k=1;k<5;k++){const i=(p.wi+k)%5;if(p.ammo[i]>0&&!WEAPONS[i].thrown){p.wi=i;updInv(true);break;}}return;}
+  for(let k=1;k<WEAPONS.length;k++){const i=(p.wi+k)%WEAPONS.length;if(p.ammo[i]>0&&!WEAPONS[i].thrown){p.wi=i;updInv(true);break;}}return;}
  p.ammo[p.wi]--;p.cd=w.cd;
  if(w.thrown){let tx,ty;if(p.target){tx=p.target.x;ty=p.target.y;}else{tx=p.x+Math.cos(p.aim)*200;ty=p.y+Math.sin(p.aim)*200;}
   throwBottle(p.x,p.y,tx,ty,true,'p',30);p.meleeT=0.22;updInv(true);return;}
@@ -1171,7 +1174,7 @@ function update(dt){
   if(!tg){z.walkT+=dt*0.3;continue;}
   const dx=tg.x-z.x,dy=tg.y-z.y,d=Math.hypot(dx,dy)||1;z.face=dx<0?-1:1;if(!(z.windup>0))z.wantFace=Math.atan2(dy,dx);
   if(z.type==='boss')bossAI(z,tg,d,dt);
-  if(z.type==='tcc'||z.type==='rumin'){specialAI(z,tg,d,dt,i);continue;}
+  if(typeof V4AI!=='undefined'&&V4AI[z.type]){V4AI[z.type](z,tg,d,dt,i);continue;}if(z.type==='tcc'||z.type==='rumin'){specialAI(z,tg,d,dt,i);continue;}
   z.throwT=Math.max(0,(z.throwT||0)-dt);
   if(z.windup>0){z.windup-=dt;z.wantFace=Math.atan2(dy,dx);if(z.windup<=0){const lead=0.5;const vx=tg===p&&p.moving?mx*p.spd*lead:0,vy=tg===p&&p.moving?my*p.spd*lead:0;
     const fa=Math.atan2(dy,dx),hp=handPos(z,fa);z.throwT=0.35;z.holdBurn=false;
@@ -1987,7 +1990,7 @@ function drawOverlay(){
    c.fillStyle='#fff';c.font='bold 12px sans-serif';c.fillText(Math.round(dist(p.x,p.y,tg.x,tg.y)/10)+' '+t('m'),ex-Math.cos(a)*30,ey-Math.sin(a)*30);}}
  const boss=g.zombies.find(z=>z.big&&!z.dead);
  if(boss){const bw=Math.min(W*0.8,420),bx=(W-bw)/2,by=W>H?H-30:132;c.fillStyle='#000';rr(c,bx-3,by-3,bw+6,20,8);c.fill();c.fillStyle='#600';c.fillRect(bx,by,bw,14);c.fillStyle='#e53935';c.fillRect(bx,by,bw*boss.hp/boss.maxHp,14);
-  c.fillStyle='#fff';c.font='bold 12px sans-serif';c.fillText(t(boss.type==='rumin'?'boss_rumin':'boss_plyash'),W/2,by+8);}
+  c.fillStyle='#fff';c.font='bold 12px sans-serif';c.fillText(t((typeof BOSSNAME!=='undefined'&&BOSSNAME[boss.type])||'boss_plyash'),W/2,by+8);}
  if(joy.active){c.globalAlpha=0.5;c.fillStyle='#000';c.beginPath();c.arc(joy.bx,joy.by,58,0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=3;c.stroke();c.globalAlpha=0.85;c.fillStyle='#ddd';c.beginPath();c.arc(joy.x,joy.y,26,0,7);c.fill();c.globalAlpha=1;}
  else if(state==='play'){c.globalAlpha=0.22;c.strokeStyle='#fff';c.lineWidth=3;c.beginPath();c.arc(90,H-110,52,0,7);c.stroke();c.fillStyle='#fff';c.beginPath();c.arc(90,H-110,22,0,7);c.fill();c.globalAlpha=1;}
 }
@@ -2384,7 +2387,7 @@ function buildInv(){const inv=$('inv');inv.innerHTML='';invEls.length=0;
 function updInv(full){if(!G)return;const p=G.player;
  WEAPONS.forEach((w,i)=>{const e=invEls[i];if(!e)return;const txt=w.melee?'∞':owned(w.id)||p.ammo[i]>0?String(p.ammo[i]):'🔒';if(txt!==e.last){e.s.textContent=txt;e.last=txt;}
   if(full){e.d.classList.toggle('on',i===p.wi);e.d.classList.toggle('empty',!w.melee&&p.ammo[i]<=0);}});
- const f=invEls[5];if(f&&full){f.s.textContent=p.flash?t('flash_on'):t('flash_off');drawIcon(f.cc,'flash',p.flash);f.d.classList.toggle('on',p.flash);}
+ const f=invEls[WEAPONS.length];if(f&&full){f.s.textContent=p.flash?t('flash_on'):t('flash_off');drawIcon(f.cc,'flash',p.flash);f.d.classList.toggle('on',p.flash);}
  if(full){const w=WEAPONS[p.wi];drawIcon($('swIcon'),w.id,true);$('bFire').textContent=t(w.melee?'b_knife':w.thrown?'b_throw':'b_fire');}}
 let hudCache={};
 function updHud(){const p=G.player;const hp=Math.ceil(p.hp);
@@ -2432,7 +2435,7 @@ cv.addEventListener('pointerdown',e=>{SFX.init();RADIO.init();if(state==='street
 window.addEventListener('pointermove',e=>streetMove(e.clientX,e.clientY));window.addEventListener('pointerup',e=>streetUp(e.clientX,e.clientY));
 window.addEventListener('keydown',e=>{SFX.init();keys[e.code]=true;
  if(state==='play'){if(e.code==='KeyQ')switchWeapon(1);if(e.code==='KeyF')toggleFlash();if(e.code==='KeyR')summonAnts();if(e.code==='KeyG')drinkBottle();if(e.code==='Space')attack();
-  if(/^Digit[1-5]$/.test(e.code))selectWeapon(+e.code.slice(5)-1);}
+  if(/^Digit[1-8]$/.test(e.code))selectWeapon(+e.code.slice(5)-1);}
  if(e.code==='Escape'||e.code==='KeyP')togglePause();
  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();});
 window.addEventListener('keyup',e=>{keys[e.code]=false;});
@@ -2746,10 +2749,560 @@ const _bw3=buildWorld2;buildWorld2=function(G){const r=_bw3.apply(this,arguments
 window.v3Showcase=function(list,cam){if(!list){window.SHOWCASE=null;return 0;}const sc=new THREE.Scene();sc.background=new THREE.Color(0xa8b8c8);sc.fog=new THREE.Fog(0xa8b8c8,14,40);
  sc.add(new THREE.HemisphereLight(0xe8f0ff,0x4a4a38,1.0));const dl=new THREE.DirectionalLight(0xfff0dc,2.4);dl.position.set(3,7,6);dl.castShadow=!lowQ();dl.shadow.mapSize.set(1024,1024);dl.shadow.radius=3;const c=dl.shadow.camera;c.left=-6;c.right=6;c.top=6;c.bottom=-6;sc.add(dl);
  const gt=dirtTex().clone();gt.needsUpdate=true;gt.repeat.set(3,3);const gnd=mesh(new THREE.PlaneGeometry(30,30),PBM('#fff',{map:gt,roughness:1}),0,0,0,sc,false);gnd.rotation.x=-Math.PI/2;gnd.receiveShadow=true;
- const mk={viktor:()=>makeViktor(),alco:()=>makeZombie({type:'walker'}),fat:()=>makeZombie({type:'fat'}),runner:()=>makeZombie({type:'runner'}),thrower:()=>makeZombie({type:'thrower'}),tcc:()=>makeTCC3(),yura:()=>makeYura3(),kendi:()=>makeKendi3(),rumin:()=>makeRumin3(),galya:()=>makeGalya(),boss:()=>makeZombie({type:'boss'})};
+ const mk={viktor:()=>makeViktor(),alco:()=>makeZombie({type:'walker'}),fat:()=>makeZombie({type:'fat'}),runner:()=>makeZombie({type:'runner'}),thrower:()=>makeZombie({type:'thrower'}),tcc:()=>makeTCC3(),yura:()=>makeYura3(),kendi:()=>makeKendi3(),rumin:()=>makeRumin3(),galya:()=>makeGalya(),boss:()=>makeZombie({type:'boss'})};Object.assign(mk,window.SHOWX||{});
  const n=list.length;list.forEach((k,i)=>{const r=mk[k]();if(r.weapons)for(const w in r.weapons)r.weapons[w].visible=w==='knife';const sc0=r.s||1;r.g.scale.setScalar(Math.min(sc0,1.35));r.g.position.set((i-(n-1)/2)*1.25,0,0);r.g.rotation.y=(i-(n-1)/2)*-0.12;sc.add(r.g);});
  window.SHOWCASE={sc,cam:cam||[[0,2.0,Math.max(3.2,n*1.3)],[0,1.5,0]]};return n;};
 (function(){const rr=renderer.render;renderer.render=function(sc,cam){const S=window.SHOWCASE;if(S){cam.position.fromArray(S.cam[0]);cam.lookAt(new THREE.Vector3().fromArray(S.cam[1]));renderer.toneMappingExposure=1.0;return rr.call(renderer,S.sc,cam);}return rr.call(renderer,sc,cam);};})();
+
+// ================= v4 CAST: new invented characters, castle «Мультимедіа», hill, car =================
+function makeMelnychuk3(){const r=rig({skin:'#d9a07c',hair:'#4a3a2a',hairStyle:'short',beard:'stubble',beardCol:'#3a2a1a',mustache:true,browTilt:0.28,eyeCol:'#2a1a10',build:'fat',lids:0.75,
+  top:{kind:'jacket',col:'#6a2a1a',stripe:'#c0c0c0'},pants:'#2a2a33',shoes:'#1a1a1a',shoeKind:'boots',hat:{kind:'cap',col:'#1e1e1e'}});
+ const mp=new THREE.Group();const body=new THREE.Group();mp.add(body);const paint=PBM('#b02020',{roughness:0.35,metalness:0.3}),chrome=PBM('#aab0b5',{metalness:0.85,roughness:0.25});
+ mp.userData.wheels=[wheelV3(0.36,0.13,0,0.38,0.78,body),wheelV3(0.36,0.13,0,0.38,-0.72,body)];
+ const P=PB();P.add(rboxG(0.36,0.45,1.05,0.15),paint,0,0.72,-0.05).add(rboxG(0.34,0.14,0.7,0.06),PBM('#1e1e1e',{roughness:0.6}),0,1.0,-0.3).add(taperG(0.03,0.03,0.85,6),chrome,0,1.45,0.74,0.4)
+  .add(taperG(0.025,0.025,0.84,6),chrome,0,1.45,0.8,0,0,Math.PI/2).add(sphG(0.11,10,8),PBM('#ffe',{emissive:0x444433}),0,1.25,0.9).add(cylG(0.38,0.38,0.15,12,true,-0.6,1.8),paint,0,0.42,0.78,0,0,Math.PI/2)
+  .add(taperG(0.04,0.035,0.65,6),chrome,0.14,0.5,-0.3,1.2);pbBuild(P,'melmoped',body,null,true);
+ r.g.add(mp);r.moped=mp;r.body.position.set(0,-0.15,-0.3);r.rider=true;r.elbowK=0.3;
+ r.g.scale.setScalar(1.25);r.s=1.25;return r;}
+function makePasha3(){const r=rig({skin:'#f0c0a0',hair:'#c0501c',hairStyle:'long',beard:'full',beardCol:'#b8481a',browCol:'#b8481a',browTilt:0.32,eyeCol:'#2a5a3a',build:'stocky',blush:'rgba(230,110,90,0.4)',
+  top:{kind:'tracksuit',col:'#1a3a6a'},pants:'#1a3a6a',shoes:'#f0f0f0',shoeKind:'sneakers',lace:'#c0501c'});r.g.scale.setScalar(1.25);r.s=1.25;return r;}
+function makeNalysnyk3(){const r=rig({skin:pick(['#e0b090','#d8a888','#e8bc98']),hair:pick(['#2a2420','#4a3a2a']),hairStyle:'short',beard:pick(['stubble',null]),beardCol:'#2a2420',browTilt:0.22,eyeCol:'#2a2a2a',build:'stocky',
+  top:{kind:'uniform',m:PBM('#c9a55a',{roughness:0.9,side:THREE.DoubleSide})},pantsM:PBM('#5a4a2a',{roughness:0.9}),shoes:'#141414',shoeKind:'boots',hat:{kind:'beret',col:'#7a1830',badge:'#e0c040'}});
+ mesh(new THREE.CircleGeometry(0.07,16),PBM('#f2c46a',{roughness:0.8}),0.11,0.52,0.25,r.chest,false);mesh(new THREE.CircleGeometry(0.045,14),PBM('#d89a3a',{roughness:0.8}),0.11,0.52,0.253,r.chest,false);
+ r.g.scale.setScalar(1.12);r.s=1.12;return r;}
+function makeDashkevich3(){const r=rig({skin:'#e6b896',hair:'#b8b8b8',hairStyle:'slick',beard:'stubble',beardCol:'#9a9a9a',browCol:'#c0c0c0',browTilt:0.18,eyeCol:'#1a1a1a',build:'fat',shades:true,
+  top:{kind:'blazer',col:'#5a1020'},shirt:'#f2f2f2',tie:'#d4a017',pants:'#1a1a22',shoes:'#0a0a0a',shoeKind:'shoes'});
+ const ch=PB();ch.add(torG(0.15,0.016,5,20),GOLD(),0,0.66,0.12,Math.PI/2-0.6,0,0,1,1,0.8).add(sphG(0.035,8,6),GOLD(),0,0.53,0.24);pbBuild(ch,'dchain',r.chest,null,false);
+ r.g.scale.setScalar(2.1);r.s=2.1;return r;}
+function makeBohdan3(){return rig({skin:'#d8a080',hair:'#7a7068',hairStyle:'short',beard:'stubble',beardCol:'#8a8078',mustache:true,eyeCol:'#4a3a2a',browTilt:-0.1,old:true,lids:0.7,
+  top:{kind:'jacket',col:'#4a5a3a'},pants:'#3a3a40',shoes:'#2a3a2a',shoeKind:'boots',hat:{kind:'flat',col:'#5a4a3a'}});}
+function makeLyalyk3(){const r=rig({skin:'#e0aa88',hair:'#2a2018',hairStyle:'short',beard:'stubble',beardCol:'#2a2018',eyeCol:'#3a2a1a',browTilt:0.05,dirt:true,
+  top:{kind:'jacket',col:'#2a4a7a',stripe:'#d0d0d0'},pants:'#2a4a7a',shoes:'#1a1a1a',shoeKind:'boots',hat:{kind:'cap',col:'#2a4a7a'}});
+ const wr=new THREE.Group();mesh(taperG(0.02,0.02,0.32,6),PBM('#9aa0a6',{metalness:0.85,roughness:0.3}),0,0,0,wr,false);wr.position.set(0,-0.06,0.02);r.handR.add(wr);return r;}
+function makeVasyl3(){return rig({skin:'#d89a70',hair:'#3a2a1e',hairStyle:'short',beard:'stubble',beardCol:'#3a2a1e',mustache:true,eyeCol:'#3a2a1a',browTilt:-0.15,browUp:0.006,build:'fat',blush:'rgba(220,90,80,0.35)',
+  top:{kind:'tshirt',col:'#e8e0c8'},pants:'#3a3a48',shoes:'#2a2018',shoeKind:'boots',belt:true,hat:{kind:'straw',band:'#2a6a2a'}});}
+const NPCMK={bohdan:makeBohdan3,lyalyk:makeLyalyk3,vasyl:makeVasyl3};
+function makeLada3(col){const g=new THREE.Group(),body=new THREE.Group();g.add(body);col=col||'#c8b07a';const paint=PBM(col,{roughness:0.3,metalness:0.4}),glass=PBM('#22303c',{roughness:0.06,metalness:0.5}),chrome=PBM('#c0c4c8',{metalness:0.9,roughness:0.18}),rub=PBM('#151515',{roughness:0.8});
+ const P=PB();P.add(rboxG(1.7,0.62,4.1,0.22),paint,0,0.72,0).add(rboxG(1.5,0.6,2.1,0.2),paint,0,1.3,-0.25).add(rboxG(1.53,0.42,2.15,0.12),glass,0,1.3,-0.25).add(rboxG(1.48,0.1,1.95,0.05),paint,0,1.57,-0.25)
+  .add(rboxG(0.06,0.5,0.06,0.02),paint,0.75,1.3,0.75).add(rboxG(0.06,0.5,0.06,0.02),paint,-0.75,1.3,0.75)
+  .add(rboxG(1.76,0.14,0.2,0.06),chrome,0,0.55,2.05).add(rboxG(1.76,0.14,0.2,0.06),chrome,0,0.55,-2.05).add(rboxG(1.0,0.22,0.04,0.02),PBM('#222',{metalness:0.5,roughness:0.4}),0,0.8,2.06)
+  .add(rboxG(1.72,0.06,3.0,0.02),rub,0,0.48,0);
+ for(const s of [1,-1])P.add(rboxG(0.02,0.04,0.25,0.01),chrome,s*0.86,0.95,0.3).add(rboxG(0.02,0.04,0.25,0.01),chrome,s*0.86,0.95,-0.7);
+ for(const x of [0.55,-0.55])P.add(cylG(0.13,0.13,0.06,12),PBM('#fff8d0',{emissive:0x555544}),x,0.78,2.07,Math.PI/2);for(const x of [0.6,-0.6])P.add(rboxG(0.3,0.14,0.05,0.03),PBM('#c02020',{emissive:0x330000}),x,0.8,-2.07);
+ pbBuild(P,'lada'+col,body,null,true);
+ const pl=mesh(new THREE.PlaneGeometry(0.5,0.12),PBM('#fff',{map:textTex('CE 5555 AA',256,60,'#f4f4f4','#111','#111')}),0,0.6,2.17,body,false);
+ g.userData.wheels=[wheelV3(0.36,0.24,0.78,0.36,1.3,body),wheelV3(0.36,0.24,-0.78,0.36,1.3,body),wheelV3(0.36,0.24,0.78,0.36,-1.3,body),wheelV3(0.36,0.24,-0.78,0.36,-1.3,body)];
+ g.traverse(m=>{if(m.isMesh)m.castShadow=true;});return g;}
+function makeCastle3(w,d){const g=new THREE.Group();const long=d>w;const L=long?d:w,D=long?w:d;const inner=new THREE.Group();g.add(inner);if(long)inner.rotation.y=-Math.PI/2;
+ const wt=wallTex('#d8d0c0').clone();wt.needsUpdate=true;wt.repeat.set(L/6,2);const wallM=PBM('#d8d0c0'+L,{map:wt,roughness:0.95}),stone=PBM('#8a8478',{roughness:0.95}),roof=PBM('#4a2a5a',{roughness:0.5,metalness:0.25}),gold=GOLD();
+ const H=7;const P=PB();P.add(rboxG(L,H,D,0.2,1),wallM,0,H/2,0).add(rboxG(L+0.4,0.6,D+0.4,0.1,1),stone,0,0.3,0).add(rboxG(L+0.3,0.5,D+0.3,0.1,1),stone,0,H+0.25,0);
+ const nT=Math.max(3,Math.round(L/22));for(let i=0;i<=nT;i++){const x=-L/2+i*L/nT;P.add(cylG(1.6,1.8,H+4,16),wallM,x,(H+4)/2,0).add(new THREE.ConeGeometry(2.1,3.6,16),roof,x,H+5.8,0).add(cylG(0.06,0.06,1.6,6),gold,x,H+8.2,0);}
+ for(let x=-L/2+1;x<L/2;x+=1.6)P.add(rboxG(0.8,0.7,D+0.5,0.06,1),stone,x,H+0.85,0);
+ P.add(rboxG(4,4.5,0.6,0.2,1),PBM("#3a2418",{roughness:0.7}),-L/2+12,2.25,D/2+0.1);
+ pbBuild(P,'castle'+L.toFixed(1)+'_'+D.toFixed(1),inner,null,true);
+ const im=new THREE.InstancedMesh(rboxG(1.0,1.6,0.12,0.05,1),winMat.lit,Math.floor(L/3.2)*4+4);const o=new THREE.Object3D();let k=0;
+ for(let x=-L/2+2;x<L/2-1;x+=3.2)for(const y of [2.2,5.0])for(const s of [1,-1]){if(k>=im.count)break;o.position.set(x,y,s*(D/2+0.03));o.updateMatrix();im.setMatrixAt(k++,o.matrix);}im.count=k;inner.add(im);
+ const sm=new THREE.MeshLambertMaterial({map:textTex('«МУЛЬТИМЕДІА»',1024,140,'#3a1040','#ffd23f','#ffd23f'),emissive:0x221022});
+ for(const x of [-L/4,L/4]){const s=mesh(new THREE.PlaneGeometry(Math.min(16,L*0.3),2.2),sm,x,H-1.6,D/2+0.06,inner,false);const s2=s.clone();s2.position.z=-D/2-0.06;s2.rotation.y=Math.PI;inner.add(s2);}
+ g.traverse(m=>{if(m.isMesh)m.receiveShadow=true;});return g;}
+function makeGarage3(w,d){const g=makeShed3(w,d);mesh(new THREE.PlaneGeometry(Math.min(5,w*0.8),0.9),new THREE.MeshLambertMaterial({map:textTex('СТО «ЛЯЛИК»',512,100,'#1a2a4a','#ffd23f'),emissive:0x111122}),0,2.6,d/2+0.06,g,false);return g;}
+function makeHill3(r,h){const k='hill'+r+'_'+h+lowQ();if(!V3.G[k]){const g=new THREE.SphereGeometry(r,sg(28),sg(12),0,Math.PI*2,0,Math.PI/2);const P=g.attributes.position;for(let i=0;i<P.count;i++){const y=P.getY(i),x=P.getX(i),z=P.getZ(i);P.setY(i,y/r*h*(1+0.06*Math.sin(x*0.7)*Math.cos(z*0.6)));}g.computeVertexNormals();V3.G[k]=g;}
+ const gt=grassTex().clone();gt.needsUpdate=true;gt.repeat.set(r/2,r/2);const g=new THREE.Group();const m=mesh(V3.G[k],PBM('#fff'+r,{map:gt,roughness:1,tint:0xc8d0a8}),0,0,0,g,true);m.receiveShadow=true;
+ const cr=new THREE.Group();mesh(rboxG(0.2,3,0.2,0.04),PBM('#5a3e26'),0,1.5,0,cr);mesh(rboxG(1.4,0.18,0.18,0.04),PBM('#5a3e26'),0,2.3,0,cr);cr.position.y=h-0.2;g.add(cr);
+ for(let i=0;i<5;i++){const t=makeTree3(1,'#3a7a2a');const a=i/5*6.28+0.4,rr=r*0.62;t.position.set(Math.cos(a)*rr,h*0.55,Math.sin(a)*rr);g.add(t);}return g;}
+function makeStall3(){const g=new THREE.Group();const wood=PBM('#8a6a42',{roughness:0.9});mesh(rboxG(2.6,1.0,1.0,0.06),wood,0,0.5,0,g);mesh(rboxG(2.9,0.08,1.4,0.03),PBM('#2a7a3a',{roughness:0.8}),0,2.4,0.1,g);
+ for(const x of [-1.3,1.3])mesh(cylG(0.05,0.05,2.4,6),wood,x,1.2,0.6,g);
+ for(let i=0;i<9;i++){const b=makeBottle(['green','brown','clear'][i%3],false,0.8);b.position.set(-1.05+i*0.26,1.25,(i%2)*0.2-0.1);g.add(b);}
+ for(let i=0;i<4;i++){const wm=mesh(sphG(0.24,12,8),PBM('#2e6a2a',{roughness:0.6}),-1+i*0.6,0.2,0.75,g);wm.scale.set(1.2,0.95,1);}return g;}
+function makeSignpost3(names){const g=new THREE.Group();mesh(cylG(0.08,0.1,3.4,8),PBM('#5a3e26'),0,1.7,0,g);names.forEach((n,i)=>{const s=mesh(rboxG(2.4,0.42,0.06,0.03),PBM('#fff',{map:textTex(n,512,100,'#1a5a2a','#fff','#fff'),roughness:0.7}),i%2?-1.1:1.1,3.0-i*0.5,0,g);s.rotation.y=i%2?0.3:-0.3;});return g;}
+function makeShepherd3(){const g=new THREE.Group(),b=new THREE.Group();g.add(b);const tan=PBM('#a8743a',{roughness:0.95}),blk=PBM('#1e1a16',{roughness:0.95}),nose=PBM('#111',{roughness:0.3});
+ const P=PB();P.add(new THREE.CapsuleGeometry(0.26,0.75,sg(4),sg(12)),tan,0,0.8,-0.02,Math.PI/2).add(sphG(0.3,12,8,0,Math.PI*2,0,Math.PI*0.5),blk,0,0.86,-0.1,0,0,0,0.95,0.7,1.6)
+  .add(sphG(0.27,12,10),tan,0,0.85,0.38).add(taperG(0.14,0.11,0.25,10),tan,0,1.05,0.5,-0.9).add(sphG(0.19,14,10),tan,0,1.18,0.74,0,0,0,0.9,0.9,1.05)
+  .add(taperG(0.085,0.06,0.2,10),tan,0,1.13,0.86,-1.75).add(sphG(0.05,8,6),nose,0,1.14,1.07);
+ for(const s of [1,-1])P.add(new THREE.ConeGeometry(0.07,0.2,8),blk,s*0.1,1.38,0.68,0,0,s*0.25).add(sphG(0.025,8,6),PBM('#e8c040',{emissive:0x332200}),s*0.07,1.24,0.9);
+ pbBuild(P,'shep',b,null,true);const legs=[];for(const [x,z] of [[0.14,0.38],[-0.14,0.38],[0.14,-0.38],[-0.14,-0.38]]){const p=pivot(x,0.62,z,b);const L=PB();L.add(taperG(0.07,0.05,0.5,8),tan,0,0,0).add(sphG(0.06,8,6),blk,0,-0.56,0.03,0,0,0,1,0.7,1.3);pbBuild(L,'sleg',p,null,true);legs.push(p);}
+ const tail=pivot(0,0.9,-0.48,b);mesh(taperG(0.06,0.03,0.55,8),tan,0,0,0,tail).rotation.x=-2.5;g.userData={b,legs,tail};g.traverse(m=>{if(m.isMesh)m.castShadow=true;});g.scale.setScalar(1.25);return g;}
+
+// v4 strings
+(function(){const A={"uk": {"act_talk": "ГОВОРИТИ", "act_give": "ВІДДАТИ", "act_buy": "КУПИТИ 🍾", "act_pay": "ЗАПЛАТИТИ 400", "act_car": "СІСТИ В АВТО", "act_exit": "ВИЙТИ", "btn_shop": "Крамниця Кенді", "btn_region": "Карта регіону", "btn_journal": "Журнал", "shop_big": "КЕНДІ: ЗБРОЯ ТУТ!", "car_lbl": "Копійка", "c_guns": "Вогнепальне", "c_melee": "Ближній бій", "c_supply": "Припаси", "c_up": "Покращення", "s_rifle": "Гвинтівка", "sd_rifle": "Б’є далеко й боляче. Дід казав — з нею ще на зайців ходив.", "s_bat": "Бита", "sd_bat": "Американський спорт, буковинське застосування.", "s_axe": "Сокира", "sd_axe": "Дрова, двері, Налисники — розрубає все.", "s_ammobox": "Ящик набоїв", "sd_ammobox": "+60% набоїв до всіх твоїх стволів на наступну місію.", "s_medkit": "Аптечка", "sd_medkit": "Сама спрацює, коли здоров’я менше 30%. Зелена, як зеленка.", "s_armor": "Бронежилет", "sd_armor": "−12% шкоди за рівень. Пошитий з дверей від «Запорожця».", "n_vasyl": "Василь Баштовий", "n_bohdan": "Богдан Коняк", "n_lyalyk": "Лялик", "boss_mel": "МЕЛЬНИЧУК НА МОПЕДІ", "boss_pasha": "ПАША РИЖИЙ", "boss_dashk": "ДАШКЕВИЧ, КОРОЛЬ «5 ХАТКИ»", "lose_melnychuk": "Мельничук переїхав тебе мопедом. Двічі.", "lose_pasha": "Паша Рижий задушив тебе в обіймах. Дуже щирих.", "lose_nalysnyk": "Налисники загорнули тебе, як млинець.", "lose_dashk": "Дашкевич розтоптав тебе на порозі «Мультимедіа».", "lose_shepherd": "Василь-вівчарка тебе погриз. Не треба було бити продавця.", "m8_name": "Пригорок", "m8_desc": "За Чепоносами — пригорок, звідки видно всю Буковину. Біля підніжжя торгує Василь Баштовий: знайди його загублені банки наливки, а тоді вилізь на вершину.", "m9_name": "Гордівці", "m9_desc": "Пройди через Гордівці до двору Мельничука. Він гасає на мопеді, таранить і б’є, як ковадло. Коли мопед зламається — піде на кулаки.", "m10_name": "Малинці", "m10_desc": "Богдан Коняк з Малинців знає, де взяти машину. Але спершу Паша Рижий забрав його ключі. Паша хапає й душить — тисни кнопку, щоб вирватись!", "m11_name": "Рукшин", "m11_desc": "Копійка Коняка стоїть у Рукшині на СТО «Лялик». Лялик полагодить її, якщо принесеш колесо, акумулятор і карбюратор — або заплатиш 400 щ. Потім виїжджай!", "m12_name": "Замок «Мультимедіа»", "m12_desc": "Дашкевич, король «5 хатки» і власник велетенської вежі, сидить у ДУЖЕ довгому замку «Мультимедіа». Його військо Налисники стереже кожен метр. Доїдь, пройди вздовж стін — і він вийде сам.", "loc_0": "Чепоноси", "loc_1": "Чепоноси", "loc_2": "Чепоноси", "loc_3": "Чепоноси", "loc_4": "Чепоноси", "loc_5": "Чепоноси", "loc_6": "Кордон", "loc_7": "Румунія", "loc_8": "Пригорок", "loc_9": "Гордівці", "loc_10": "Малинці", "loc_11": "Рукшин", "loc_12": "«5 хатка»", "reg_title": "Карта регіону", "reg_hint": "Торкнись села, щоб обрати квест. До замку пішки не дійти — потрібна машина.", "reg_car": "🚗 У тебе є копійка — можна їздити між селами!", "reg_chep": "Чепоноси", "reg_hill": "Пригорок", "reg_gord": "Гордівці", "reg_maly": "Малинці", "reg_ruk": "Рукшин", "reg_castle": "«Мультимедіа»", "reg_border": "Кордон", "reg_tower": "Вежа «5 хатки»", "sp_gord": "ГОРДІВЦІ →", "sp_maly": "← МАЛИНЦІ", "sp_ruk": "РУКШИН →", "sp_chep": "← ЧЕПОНОСИ", "jour_title": "Журнал квестів", "jour_now": "Зараз", "jour_lock": "Спершу пройди попередні квести.", "need_dash": "Спершу скинь Дашкевича в замку «Мультимедіа» — інакше Налисники здадуть тебе на кордоні.", "need_car": "Потрібна машина з Рукшина.", "by_car": "їдеш копійкою", "dog_hint": "Щось скавчить під ящиком!", "dog_whine": "*скавчить*", "dog_crate_lbl": "🐾 ЯЩИК — РОЗБИЙ!", "o_hill0": "Поговори з Василем Баштовим біля пригорка", "o_hill1": "Знайди банки наливки: {0}/3", "o_hill2": "Віднеси банки Василю", "o_hill3": "Вилізь на вершину пригорка до хреста", "o_gord0": "Пройди Гордівці до двору Мельничука", "o_gord1": "Збий Мельничука! Залишилось {0}%", "o_maly0": "Знайди Богдана Коняка на перехресті", "o_maly1": "Йди до ставка — там Паша Рижий", "o_maly2": "Переможи Пашу Рижого! {0}% (схопить — тисни!)", "o_maly3": "Підбери ключі Коняка", "o_maly4": "Поверни ключі Богданові", "o_ruk0": "Дійди до СТО «Лялик»", "o_ruk1": "Запчастини: {0}/3 {1}", "o_ruk_pay": "(або заплати Лялику 400 щ)", "o_ruk2": "Віднеси запчастини Лялику", "o_ruk3": "Лялик ремонтує копійку… {0}%", "o_ruk4": "Сідай у копійку (тримай ДІЯ)", "o_ruk5": "Виїжджай з Рукшина на південь", "o_cas0": "Пройди вздовж замку «Мультимедіа» до брами", "o_cas1": "Скинь Дашкевича! Залишилось {0}%", "d_vas0": "Василь: О, Вікторе! Бери пляшечку — 25 щ, лікує все, крім совісті.", "d_vas1": "Василь: Тільки біда — алкаші розтягли мої банки наливки по пригорку.", "d_vas2": "Василь: Принеси три — дам грошей. І не бий мене, бо я… нервовий.", "d_vas3": "Василь: Всі три! Тримай 120 щ.", "d_vas4": "Василь: Тепер лізь на вершину — звідти видно Гордівці.", "d_mel0": "Мельничук: Хто тут топче мої Гордівці?!", "d_mel1": "Мельничук: Зараз я тебе на «Дельті» як тарганця!", "d_bo0": "Богдан: Машина? Є копійка, 1983 року, як нова. Майже.", "d_bo1": "Богдан: Стоїть у Рукшині, в Лялика на СТО. Але ключі забрав Паша Рижий.", "d_bo2": "Богдан: Він біля ставка. Обережно — душить, як удав.", "d_bo3": "Богдан: Мої ключі! Ну все, їдь у Рукшин до Лялика.", "d_bo4": "Богдан: І масло перевір. І гальма. І… просто їдь повільно.", "d_pa0": "Паша Рижий: Ключі? Іди сюди, обіймемось…", "d_pa1": "Паша Рижий: Пацани, тримайте його!", "d_ly0": "Лялик: Копійка Коняка? Бачиш її? Без колеса, акумулятора й карбюратора.", "d_ly1": "Лялик: Алкаші розтягли деталі по дворах. Принеси — полагоджу.", "d_ly2": "Лялик: Або 400 щ — і я «знайду» свої.", "d_ly3": "Лялик: Гроші люблять тишу. Ремонтую!", "d_ly4": "Лялик: Оце деталі! Зараз зроблю.", "d_ly5": "Лялик: Готово! Заводиться з третього разу — це нормально.", "d_da0": "Дашкевич: ХТО ПОСМІВ ПІДІЙТИ ДО «МУЛЬТИМЕДІА»?!", "d_da1": "Дашкевич: Я король «5 хатки»! Моя вежа вища за твоє майбутнє!", "d_da2": "Дашкевич: Налисники, загорніть його!", "t_vasyl_wolf": "Василь Баштовий перетворився на вівчарку! Р-р-р!", "vasyl_grr": "Р-Р-РГАВ!", "t_vasyl_back": "Василь знову людина. Ображений — більше не продає.", "bite": "Кусь!", "vasyl_sell0": "Василь: Пий на здоров’я!", "vasyl_sell1": "Василь: Свіженька, з погреба!", "vasyl_sell2": "Василь: Ще одну? Я не осуджую.", "t_full": "Більше не влізе (5 пляшок).", "no_money": "Не вистачає грошей!", "t_medkit": "Аптечка спрацювала! Лишилось: {0}", "grab_on": "Паша схопив тебе! Тисни!", "grab_mash": "ТИСНИ, ЩОБ ВИРВАТИСЬ!", "mash_tap": "ТИСНИ!", "grab_free": "Вирвався! Паша приголомшений!", "pasha_grab": "Іди-но сюди!", "pasha_call": "Паша кличе пацанів!", "mel_rev": "ВРУМ-ВРУМ!", "mel_ram": "ТАРАН!", "mel_hit": "БАХ!", "mel_fall": "Мопед Мельничука розлетівся! Тепер він на кулаках!", "stunned": "Оглушений!", "t_mel_come": "Мельничук виїжджає на мопеді!", "t_mel_dead": "Мельничук більше не їздитиме по Гордівцях.", "t_pasha_come": "Паша Рижий виходить!", "t_pasha_dead": "Пашу скручено! Він впустив ключі.", "got_jar": "Банка наливки!", "got_keys": "Ключі від копійки!", "got_wheel": "Колесо!", "got_battery": "Акумулятор!", "got_carb": "Карбюратор!", "t_car_in": "Ти за кермом! Рулюй джойстиком/WASD.", "t_car_ready": "Копійка на ходу!", "t_car_got": "Тепер у тебе є машина — їзди між селами!", "t_dashk_come": "Брама відчиняється… Дашкевич виходить сам!", "t_dashk_dead": "Корону «5 хатки» скинуто!", "dashk_call": "Дашкевич кличе Налисників!", "dashk_slam": "ГУП!", "dashk_shout0": "Я ТУТ ЗАКОН!", "dashk_shout1": "МОЯ ВЕЖА!", "dashk_shout2": "НА КОЛІНА!", "nal_sh0": "Налисники, до бою!", "nal_sh1": "Стій! Пропуск!", "nal_sh2": "За короля!", "nal_sh3": "Загортай його!", "w_hill": "З пригорка видно Гордівці, Малинці й Рукшин. Шлях відкрито!", "w_gord": "Мельничук переможений. Гордівці дихають спокійно.", "w_maly": "Ключі в тебе. Наступна зупинка — Рукшин.", "w_ruk": "Ти виїхав з Рукшина на власній копійці! Тепер — до «Мультимедіа».", "w_castle": "Дашкевича скинуто, Налисники розбіглися. Дорога до кордону вільна!"}, "ru": {"act_talk": "ГОВОРИТЬ", "act_give": "ОТДАТЬ", "act_buy": "КУПИТЬ 🍾", "act_pay": "ЗАПЛАТИТЬ 400", "act_car": "СЕСТЬ В АВТО", "act_exit": "ВЫЙТИ", "btn_shop": "Лавка Кенди", "btn_region": "Карта региона", "btn_journal": "Журнал", "shop_big": "КЕНДИ: ОРУЖИЕ ТУТ!", "car_lbl": "Копейка", "c_guns": "Огнестрел", "c_melee": "Ближний бой", "c_supply": "Припасы", "c_up": "Улучшения", "s_rifle": "Винтовка", "sd_rifle": "Бьёт далеко и больно. Дед говорит, с ней на зайцев ходил.", "s_bat": "Бита", "sd_bat": "Американский спорт, буковинское применение.", "s_axe": "Топор", "sd_axe": "Дрова, двери, Налисники — разрубит всё.", "s_ammobox": "Ящик патронов", "sd_ammobox": "+60% патронов ко всем стволам на следующую миссию.", "s_medkit": "Аптечка", "sd_medkit": "Сработает сама, когда здоровья меньше 30%.", "s_armor": "Бронежилет", "sd_armor": "−12% урона за уровень. Сшит из двери «Запорожца».", "n_vasyl": "Василь Баштовый", "n_bohdan": "Богдан Коняк", "n_lyalyk": "Лялик", "boss_mel": "МЕЛЬНИЧУК НА МОПЕДЕ", "boss_pasha": "ПАША РЫЖИЙ", "boss_dashk": "ДАШКЕВИЧ, КОРОЛЬ «5 ХАТКИ»", "lose_melnychuk": "Мельничук переехал тебя мопедом. Дважды.", "lose_pasha": "Паша Рыжий задушил тебя в объятиях. Очень искренних.", "lose_nalysnyk": "Налисники завернули тебя, как блин.", "lose_dashk": "Дашкевич растоптал тебя на пороге «Мультимедиа».", "lose_shepherd": "Василь-овчарка тебя покусал. Не надо было бить продавца.", "m8_name": "Пригорок", "m8_desc": "За Чепоносами — пригорок, откуда видна вся Буковина. У подножия торгует Василь Баштовый: найди его потерянные банки наливки, а потом залезь на вершину.", "m9_name": "Гордовцы", "m9_desc": "Пройди через Гордовцы ко двору Мельничука. Он гоняет на мопеде, таранит и бьёт как наковальня. Когда мопед сломается — пойдёт на кулаках.", "m10_name": "Малинцы", "m10_desc": "Богдан Коняк из Малинцев знает, где взять машину. Но Паша Рыжий забрал его ключи. Паша хватает и душит — жми кнопку, чтобы вырваться!", "m11_name": "Рукшин", "m11_desc": "Копейка Коняка стоит в Рукшине на СТО «Лялик». Лялик починит её, если принесёшь колесо, аккумулятор и карбюратор — или заплатишь 400. Потом выезжай!", "m12_name": "Замок «Мультимедиа»", "m12_desc": "Дашкевич, король «5 хатки» и владелец гигантской башни, живёт в ОЧЕНЬ длинном замке «Мультимедиа». Его войско Налисники стережёт каждый метр. Доедь, пройди вдоль стен — и он выйдет сам.", "loc_0": "Чепоносы", "loc_1": "Чепоносы", "loc_2": "Чепоносы", "loc_3": "Чепоносы", "loc_4": "Чепоносы", "loc_5": "Чепоносы", "loc_6": "Граница", "loc_7": "Румыния", "loc_8": "Пригорок", "loc_9": "Гордовцы", "loc_10": "Малинцы", "loc_11": "Рукшин", "loc_12": "«5 хатка»", "reg_title": "Карта региона", "reg_hint": "Коснись села, чтобы выбрать квест. До замка пешком не дойти — нужна машина.", "reg_car": "🚗 У тебя есть копейка — можно ездить между сёлами!", "reg_chep": "Чепоносы", "reg_hill": "Пригорок", "reg_gord": "Гордовцы", "reg_maly": "Малинцы", "reg_ruk": "Рукшин", "reg_castle": "«Мультимедиа»", "reg_border": "Граница", "reg_tower": "Башня «5 хатки»", "sp_gord": "ГОРДОВЦЫ →", "sp_maly": "← МАЛИНЦЫ", "sp_ruk": "РУКШИН →", "sp_chep": "← ЧЕПОНОСЫ", "jour_title": "Журнал квестов", "jour_now": "Сейчас", "jour_lock": "Сначала пройди предыдущие квесты.", "need_dash": "Сначала свергни Дашкевича в замке «Мультимедиа» — иначе Налисники сдадут тебя на границе.", "need_car": "Нужна машина из Рукшина.", "by_car": "едешь на копейке", "dog_hint": "Что-то скулит под ящиком!", "dog_whine": "*скулит*", "dog_crate_lbl": "🐾 ЯЩИК — РАЗБЕЙ!", "o_hill0": "Поговори с Василем Баштовым у пригорка", "o_hill1": "Найди банки наливки: {0}/3", "o_hill2": "Отнеси банки Василю", "o_hill3": "Залезь на вершину к кресту", "o_gord0": "Пройди Гордовцы ко двору Мельничука", "o_gord1": "Сбей Мельничука! Осталось {0}%", "o_maly0": "Найди Богдана Коняка на перекрёстке", "o_maly1": "Иди к пруду — там Паша Рыжий", "o_maly2": "Победи Пашу Рыжего! {0}% (схватит — жми!)", "o_maly3": "Подбери ключи Коняка", "o_maly4": "Верни ключи Богдану", "o_ruk0": "Дойди до СТО «Лялик»", "o_ruk1": "Запчасти: {0}/3 {1}", "o_ruk_pay": "(или заплати Лялику 400)", "o_ruk2": "Отнеси запчасти Лялику", "o_ruk3": "Лялик чинит копейку… {0}%", "o_ruk4": "Садись в копейку (держи ДЕЙСТВИЕ)", "o_ruk5": "Выезжай из Рукшина на юг", "o_cas0": "Пройди вдоль замка «Мультимедиа» к воротам", "o_cas1": "Сверги Дашкевича! Осталось {0}%", "d_vas0": "Василь: О, Виктор! Бери бутылочку — 25, лечит всё, кроме совести.", "d_vas1": "Василь: Беда только — алкаши растащили мои банки наливки по пригорку.", "d_vas2": "Василь: Принеси три — заплачу. И не бей меня, я… нервный.", "d_vas3": "Василь: Все три! Держи 120.", "d_vas4": "Василь: Теперь лезь на вершину — оттуда видно Гордовцы.", "d_mel0": "Мельничук: Кто топчет мои Гордовцы?!", "d_mel1": "Мельничук: Сейчас раздавлю тебя «Дельтой», как таракана!", "d_bo0": "Богдан: Машина? Есть копейка, 1983 года, как новая. Почти.", "d_bo1": "Богдан: Стоит в Рукшине у Лялика на СТО. Но ключи забрал Паша Рыжий.", "d_bo2": "Богдан: Он у пруда. Осторожно — душит как удав.", "d_bo3": "Богдан: Мои ключи! Езжай в Рукшин к Лялику.", "d_bo4": "Богдан: И масло проверь. И тормоза. И… просто езжай медленно.", "d_pa0": "Паша Рыжий: Ключи? Иди сюда, обнимемся…", "d_pa1": "Паша Рыжий: Пацаны, держите его!", "d_ly0": "Лялик: Копейка Коняка? Видишь? Без колеса, аккумулятора и карбюратора.", "d_ly1": "Лялик: Алкаши растащили детали по дворам. Принеси — починю.", "d_ly2": "Лялик: Или 400 — и я «найду» свои.", "d_ly3": "Лялик: Деньги любят тишину. Чиню!", "d_ly4": "Лялик: Вот это детали! Сейчас сделаю.", "d_ly5": "Лялик: Готово! Заводится с третьего раза — это нормально.", "d_da0": "Дашкевич: КТО ПОСМЕЛ ПОДОЙТИ К «МУЛЬТИМЕДИА»?!", "d_da1": "Дашкевич: Я король «5 хатки»! Моя башня выше твоего будущего!", "d_da2": "Дашкевич: Налисники, заверните его!", "t_vasyl_wolf": "Василь Баштовый превратился в овчарку! Р-р-р!", "vasyl_grr": "Р-Р-РГАВ!", "t_vasyl_back": "Василь снова человек. Обиделся — больше не продаёт.", "bite": "Кусь!", "vasyl_sell0": "Василь: Пей на здоровье!", "vasyl_sell1": "Василь: Свеженькая, из погреба!", "vasyl_sell2": "Василь: Ещё одну? Я не осуждаю.", "t_full": "Больше не влезет (5 бутылок).", "no_money": "Не хватает денег!", "t_medkit": "Аптечка сработала! Осталось: {0}", "grab_on": "Паша схватил тебя! Жми!", "grab_mash": "ЖМИ, ЧТОБЫ ВЫРВАТЬСЯ!", "mash_tap": "ЖМИ!", "grab_free": "Вырвался! Паша оглушён!", "pasha_grab": "Иди-ка сюда!", "pasha_call": "Паша зовёт пацанов!", "mel_rev": "ВРУМ-ВРУМ!", "mel_ram": "ТАРАН!", "mel_hit": "БАХ!", "mel_fall": "Мопед Мельничука развалился! Теперь он на кулаках!", "stunned": "Оглушён!", "t_mel_come": "Мельничук выезжает на мопеде!", "t_mel_dead": "Мельничук больше не будет гонять по Гордовцам.", "t_pasha_come": "Паша Рыжий выходит!", "t_pasha_dead": "Пашу скрутили! Он выронил ключи.", "got_jar": "Банка наливки!", "got_keys": "Ключи от копейки!", "got_wheel": "Колесо!", "got_battery": "Аккумулятор!", "got_carb": "Карбюратор!", "t_car_in": "Ты за рулём! Рули джойстиком/WASD.", "t_car_ready": "Копейка на ходу!", "t_car_got": "Теперь у тебя есть машина — езди между сёлами!", "t_dashk_come": "Ворота открываются… Дашкевич выходит сам!", "t_dashk_dead": "Корона «5 хатки» свергнута!", "dashk_call": "Дашкевич зовёт Налисников!", "dashk_slam": "БУХ!", "dashk_shout0": "Я ТУТ ЗАКОН!", "dashk_shout1": "МОЯ БАШНЯ!", "dashk_shout2": "НА КОЛЕНИ!", "nal_sh0": "Налисники, в бой!", "nal_sh1": "Стой! Пропуск!", "nal_sh2": "За короля!", "nal_sh3": "Заворачивай его!", "w_hill": "С пригорка видны Гордовцы, Малинцы и Рукшин. Путь открыт!", "w_gord": "Мельничук побеждён. Гордовцы дышат спокойно.", "w_maly": "Ключи у тебя. Следующая остановка — Рукшин.", "w_ruk": "Ты выехал из Рукшина на своей копейке! Теперь — к «Мультимедиа».", "w_castle": "Дашкевич свергнут, Налисники разбежались. Дорога к границе свободна!"}, "en": {"act_talk": "TALK", "act_give": "GIVE", "act_buy": "BUY 🍾", "act_pay": "PAY 400", "act_car": "GET IN CAR", "act_exit": "GET OUT", "btn_shop": "Kendi's Shop", "btn_region": "Region map", "btn_journal": "Journal", "shop_big": "KENDI: WEAPONS HERE!", "car_lbl": "Kopiyka", "c_guns": "Firearms", "c_melee": "Melee", "c_supply": "Supplies", "c_up": "Upgrades", "s_rifle": "Rifle", "sd_rifle": "Hits far and hurts. Grandpa says he hunted hares with it.", "s_bat": "Bat", "sd_bat": "American sport, Bukovynian application.", "s_axe": "Axe", "sd_axe": "Firewood, doors, Nalysnyky — chops everything.", "s_ammobox": "Ammo crate", "sd_ammobox": "+60% ammo for all your guns next mission.", "s_medkit": "Medkit", "sd_medkit": "Auto-heals when health drops below 30%.", "s_armor": "Body armor", "sd_armor": "−12% damage per level. Sewn from a Zaporozhets door.", "n_vasyl": "Vasyl Bashtovyi", "n_bohdan": "Bohdan Koniak", "n_lyalyk": "Lyalyk", "boss_mel": "MELNYCHUK ON A MOPED", "boss_pasha": "PASHA THE RED", "boss_dashk": "DASHKEVYCH, KING OF «5 KHATKA»", "lose_melnychuk": "Melnychuk ran you over with his moped. Twice.", "lose_pasha": "Pasha the Red hugged you to death. Very sincerely.", "lose_nalysnyk": "The Nalysnyky rolled you up like a pancake.", "lose_dashk": "Dashkevych stomped you at the doors of «Multimedia».", "lose_shepherd": "Vasyl-the-shepherd-dog bit you. Don't hit the salesman.", "m8_name": "The Hill", "m8_desc": "Past Cheponosy there's a hill with a view of all Bukovyna. Vasyl Bashtovyi trades at its foot: find his lost jars of nalyvka, then climb to the top.", "m9_name": "Hordivtsi", "m9_desc": "Cross Hordivtsi to Melnychuk's yard. He races around on a moped, rams and hits like an anvil. When the moped breaks he fights with fists.", "m10_name": "Malyntsi", "m10_desc": "Bohdan Koniak of Malyntsi knows where to get a car. But Pasha the Red took his keys. Pasha grabs and chokes — mash the button to break free!", "m11_name": "Rukshyn", "m11_desc": "Koniak's Kopiyka sits in Rukshyn at «Lyalyk» garage. Lyalyk fixes it if you bring a wheel, a battery and a carburettor — or pay 400. Then drive out!", "m12_name": "Castle «Multimedia»", "m12_desc": "Dashkevych, king of «5 khatka» and owner of the giant tower, lives in the VERY long castle «Multimedia». His army, the Nalysnyky, guards every metre. Drive there, walk the walls — and he will come out himself.", "loc_0": "Cheponosy", "loc_1": "Cheponosy", "loc_2": "Cheponosy", "loc_3": "Cheponosy", "loc_4": "Cheponosy", "loc_5": "Cheponosy", "loc_6": "Border", "loc_7": "Romania", "loc_8": "The Hill", "loc_9": "Hordivtsi", "loc_10": "Malyntsi", "loc_11": "Rukshyn", "loc_12": "«5 khatka»", "reg_title": "Region map", "reg_hint": "Tap a village to pick a quest. The castle is too far on foot — you need a car.", "reg_car": "🚗 You have the Kopiyka — drive between villages!", "reg_chep": "Cheponosy", "reg_hill": "The Hill", "reg_gord": "Hordivtsi", "reg_maly": "Malyntsi", "reg_ruk": "Rukshyn", "reg_castle": "«Multimedia»", "reg_border": "Border", "reg_tower": "«5 khatka» tower", "sp_gord": "HORDIVTSI →", "sp_maly": "← MALYNTSI", "sp_ruk": "RUKSHYN →", "sp_chep": "← CHEPONOSY", "jour_title": "Quest journal", "jour_now": "Now", "jour_lock": "Finish the previous quests first.", "need_dash": "First topple Dashkevych in castle «Multimedia» — or the Nalysnyky will rat you out at the border.", "need_car": "You need the car from Rukshyn.", "by_car": "you drive the Kopiyka", "dog_hint": "Something is whining under the crate!", "dog_whine": "*whine*", "dog_crate_lbl": "🐾 CRATE — BREAK IT!", "o_hill0": "Talk to Vasyl Bashtovyi by the hill", "o_hill1": "Find the nalyvka jars: {0}/3", "o_hill2": "Bring the jars to Vasyl", "o_hill3": "Climb to the cross on the hilltop", "o_gord0": "Cross Hordivtsi to Melnychuk's yard", "o_gord1": "Knock Melnychuk down! {0}% left", "o_maly0": "Find Bohdan Koniak at the crossroads", "o_maly1": "Go to the pond — Pasha the Red is there", "o_maly2": "Beat Pasha the Red! {0}% (if grabbed — mash!)", "o_maly3": "Pick up Koniak's keys", "o_maly4": "Return the keys to Bohdan", "o_ruk0": "Reach the «Lyalyk» garage", "o_ruk1": "Car parts: {0}/3 {1}", "o_ruk_pay": "(or pay Lyalyk 400)", "o_ruk2": "Bring the parts to Lyalyk", "o_ruk3": "Lyalyk is fixing the Kopiyka… {0}%", "o_ruk4": "Get in the Kopiyka (hold ACTION)", "o_ruk5": "Drive south out of Rukshyn", "o_cas0": "Walk along castle «Multimedia» to the gate", "o_cas1": "Topple Dashkevych! {0}% left", "d_vas0": "Vasyl: Oh, Viktor! Grab a bottle — 25, cures everything but conscience.", "d_vas1": "Vasyl: Trouble is, drunks scattered my nalyvka jars all over the hill.", "d_vas2": "Vasyl: Bring three and I'll pay. And don't hit me, I'm… nervous.", "d_vas3": "Vasyl: All three! Here's 120.", "d_vas4": "Vasyl: Now climb to the top — you can see Hordivtsi from there.", "d_mel0": "Melnychuk: Who's trampling my Hordivtsi?!", "d_mel1": "Melnychuk: I'll squash you like a cockroach with my «Delta»!", "d_bo0": "Bohdan: A car? There's a Kopiyka, 1983, like new. Almost.", "d_bo1": "Bohdan: It's in Rukshyn at Lyalyk's garage. But Pasha the Red took the keys.", "d_bo2": "Bohdan: He's by the pond. Careful — he chokes like a boa.", "d_bo3": "Bohdan: My keys! Go to Lyalyk in Rukshyn.", "d_bo4": "Bohdan: Check the oil. And brakes. And… just drive slowly.", "d_pa0": "Pasha the Red: Keys? Come here, let's hug…", "d_pa1": "Pasha the Red: Boys, hold him!", "d_ly0": "Lyalyk: Koniak's Kopiyka? See it? No wheel, no battery, no carburettor.", "d_ly1": "Lyalyk: Drunks dragged the parts around the yards. Bring them, I'll fix it.", "d_ly2": "Lyalyk: Or 400 — and I'll 'find' my own.", "d_ly3": "Lyalyk: Money loves silence. Fixing!", "d_ly4": "Lyalyk: Those are parts! On it.", "d_ly5": "Lyalyk: Done! Starts on the third try — that's normal.", "d_da0": "Dashkevych: WHO DARES APPROACH «MULTIMEDIA»?!", "d_da1": "Dashkevych: I am king of «5 khatka»! My tower is taller than your future!", "d_da2": "Dashkevych: Nalysnyky, roll him up!", "t_vasyl_wolf": "Vasyl Bashtovyi turned into a shepherd dog! Grrr!", "vasyl_grr": "G-R-RWOOF!", "t_vasyl_back": "Vasyl is human again. Offended — no more sales.", "bite": "Bite!", "vasyl_sell0": "Vasyl: Cheers!", "vasyl_sell1": "Vasyl: Fresh from the cellar!", "vasyl_sell2": "Vasyl: Another? I don't judge.", "t_full": "Can't carry more (5 bottles).", "no_money": "Not enough money!", "t_medkit": "Medkit used! Left: {0}", "grab_on": "Pasha grabbed you! Mash!", "grab_mash": "MASH TO BREAK FREE!", "mash_tap": "MASH!", "grab_free": "Broke free! Pasha is stunned!", "pasha_grab": "Come here!", "pasha_call": "Pasha calls his boys!", "mel_rev": "VROOM-VROOM!", "mel_ram": "RAM!", "mel_hit": "BAM!", "mel_fall": "Melnychuk's moped fell apart! Now it's fists!", "stunned": "Stunned!", "t_mel_come": "Melnychuk rides out on his moped!", "t_mel_dead": "Melnychuk won't ride around Hordivtsi anymore.", "t_pasha_come": "Pasha the Red steps out!", "t_pasha_dead": "Pasha is down! He dropped the keys.", "got_jar": "Jar of nalyvka!", "got_keys": "Kopiyka keys!", "got_wheel": "Wheel!", "got_battery": "Battery!", "got_carb": "Carburettor!", "t_car_in": "You're driving! Steer with joystick/WASD.", "t_car_ready": "The Kopiyka runs!", "t_car_got": "You have a car now — drive between villages!", "t_dashk_come": "The gate opens… Dashkevych comes out himself!", "t_dashk_dead": "The crown of «5 khatka» has fallen!", "dashk_call": "Dashkevych calls the Nalysnyky!", "dashk_slam": "THUD!", "dashk_shout0": "I AM THE LAW!", "dashk_shout1": "MY TOWER!", "dashk_shout2": "KNEEL!", "nal_sh0": "Nalysnyky, attack!", "nal_sh1": "Halt! Pass!", "nal_sh2": "For the king!", "nal_sh3": "Roll him up!", "w_hill": "From the hill you see Hordivtsi, Malyntsi and Rukshyn. The road is open!", "w_gord": "Melnychuk defeated. Hordivtsi breathes easy.", "w_maly": "You have the keys. Next stop — Rukshyn.", "w_ruk": "You drove out of Rukshyn in your own Kopiyka! Now — to «Multimedia».", "w_castle": "Dashkevych toppled, the Nalysnyky fled. The road to the border is free!"}, "he": {"act_talk": "לדבר", "act_give": "לתת", "act_buy": "לקנות 🍾", "act_pay": "לשלם 400", "act_car": "להיכנס לרכב", "act_exit": "לצאת", "btn_shop": "החנות של קנדי", "btn_region": "מפת האזור", "btn_journal": "יומן", "shop_big": "קנדי: נשק כאן!", "car_lbl": "קופייקה", "c_guns": "נשק חם", "c_melee": "קרב פנים אל פנים", "c_supply": "אספקה", "c_up": "שדרוגים", "s_rifle": "רובה", "sd_rifle": "יורה רחוק וכואב. סבא אומר שצד איתו ארנבות.", "s_bat": "מחבט", "sd_bat": "ספורט אמריקאי, שימוש בוקוביני.", "s_axe": "גרזן", "sd_axe": "עצים, דלתות, נליסניקים — חותך הכול.", "s_ammobox": "ארגז תחמושת", "sd_ammobox": "+60% תחמושת לכל הנשקים במשימה הבאה.", "s_medkit": "ערכת עזרה ראשונה", "sd_medkit": "מרפאת אוטומטית כשהבריאות יורדת מתחת ל־30%.", "s_armor": "שכפ״ץ", "sd_armor": "−12% נזק לכל רמה. תפור מדלת של זפורוז׳ץ.", "n_vasyl": "וסיל בשטובי", "n_bohdan": "בוגדן קוניאק", "n_lyalyk": "ליאליק", "boss_mel": "מלניצ׳וק על טוסטוס", "boss_pasha": "פאשה הג׳ינג׳י", "boss_dashk": "דשקביץ׳, מלך «5 חאטקה»", "lose_melnychuk": "מלניצ׳וק דרס אותך עם הטוסטוס. פעמיים.", "lose_pasha": "פאשה הג׳ינג׳י חיבק אותך למוות. בכנות רבה.", "lose_nalysnyk": "הנליסניקים גלגלו אותך כמו בלינצ׳ס.", "lose_dashk": "דשקביץ׳ רמס אותך בפתח «מולטימדיה».", "lose_shepherd": "וסיל־הכלב־רועה נשך אותך. לא מכים את המוכר.", "m8_name": "הגבעה", "m8_desc": "מעבר לצ׳פונוסי יש גבעה שממנה רואים את כל בוקובינה. למרגלותיה מוכר וסיל בשטובי: מצא את צנצנות הליקר שאבדו לו, ואז טפס לפסגה.", "m9_name": "הורדיבצי", "m9_desc": "עבור דרך הורדיבצי לחצר של מלניצ׳וק. הוא דוהר על טוסטוס, מתנגש ומכה כמו סדן. כשהטוסטוס יישבר — יעבור לאגרופים.", "m10_name": "מלינצי", "m10_desc": "בוגדן קוניאק ממלינצי יודע איפה להשיג רכב. אבל פאשה הג׳ינג׳י לקח לו את המפתחות. פאשה תופס וחונק — לחץ שוב ושוב כדי להשתחרר!", "m11_name": "רוקשין", "m11_desc": "הקופייקה של קוניאק עומדת ברוקשין במוסך «ליאליק». ליאליק יתקן אותה אם תביא גלגל, מצבר וקרבורטור — או תשלם 400. ואז סע!", "m12_name": "טירת «מולטימדיה»", "m12_desc": "דשקביץ׳, מלך «5 חאטקה» ובעל המגדל הענק, גר בטירה הארוכה מאוד «מולטימדיה». צבא הנליסניקים שומר על כל מטר. סע לשם, לך לאורך החומות — והוא ייצא בעצמו.", "loc_0": "צ׳פונוסי", "loc_1": "צ׳פונוסי", "loc_2": "צ׳פונוסי", "loc_3": "צ׳פונוסי", "loc_4": "צ׳פונוסי", "loc_5": "צ׳פונוסי", "loc_6": "הגבול", "loc_7": "רומניה", "loc_8": "הגבעה", "loc_9": "הורדיבצי", "loc_10": "מלינצי", "loc_11": "רוקשין", "loc_12": "«5 חאטקה»", "reg_title": "מפת האזור", "reg_hint": "גע בכפר כדי לבחור משימה. לטירה אי אפשר להגיע ברגל — צריך רכב.", "reg_car": "🚗 יש לך קופייקה — אפשר לנסוע בין הכפרים!", "reg_chep": "צ׳פונוסי", "reg_hill": "הגבעה", "reg_gord": "הורדיבצי", "reg_maly": "מלינצי", "reg_ruk": "רוקשין", "reg_castle": "«מולטימדיה»", "reg_border": "הגבול", "reg_tower": "מגדל «5 חאטקה»", "sp_gord": "הורדיבצי ←", "sp_maly": "→ מלינצי", "sp_ruk": "רוקשין ←", "sp_chep": "→ צ׳פונוסי", "jour_title": "יומן משימות", "jour_now": "עכשיו", "jour_lock": "קודם סיים את המשימות הקודמות.", "need_dash": "קודם הפל את דשקביץ׳ בטירת «מולטימדיה» — אחרת הנליסניקים יסגירו אותך בגבול.", "need_car": "צריך את הרכב מרוקשין.", "by_car": "נוסעים בקופייקה", "dog_hint": "משהו מייבב מתחת לארגז!", "dog_whine": "*יבבה*", "dog_crate_lbl": "🐾 ארגז — שבור אותו!", "o_hill0": "דבר עם וסיל בשטובי ליד הגבעה", "o_hill1": "מצא צנצנות ליקר: {0}/3", "o_hill2": "הבא את הצנצנות לוסיל", "o_hill3": "טפס לצלב בפסגת הגבעה", "o_gord0": "עבור דרך הורדיבצי לחצר של מלניצ׳וק", "o_gord1": "הפל את מלניצ׳וק! נשארו {0}%", "o_maly0": "מצא את בוגדן קוניאק בצומת", "o_maly1": "לך לבריכה — שם פאשה הג׳ינג׳י", "o_maly2": "נצח את פאשה הג׳ינג׳י! {0}% (אם תפס — לחץ!)", "o_maly3": "הרם את המפתחות של קוניאק", "o_maly4": "החזר את המפתחות לבוגדן", "o_ruk0": "הגע למוסך «ליאליק»", "o_ruk1": "חלקים: {0}/3 {1}", "o_ruk_pay": "(או שלם לליאליק 400)", "o_ruk2": "הבא את החלקים לליאליק", "o_ruk3": "ליאליק מתקן את הקופייקה… {0}%", "o_ruk4": "היכנס לקופייקה (החזק פעולה)", "o_ruk5": "סע דרומה אל מחוץ לרוקשין", "o_cas0": "לך לאורך טירת «מולטימדיה» עד השער", "o_cas1": "הפל את דשקביץ׳! נשארו {0}%", "d_vas0": "וסיל: הו, ויקטור! קח בקבוק — 25, מרפא הכול חוץ מהמצפון.", "d_vas1": "וסיל: הבעיה — שיכורים פיזרו את צנצנות הליקר שלי על הגבעה.", "d_vas2": "וסיל: תביא שלוש — אשלם. ואל תרביץ לי, אני… עצבני.", "d_vas3": "וסיל: כל השלוש! קח 120.", "d_vas4": "וסיל: עכשיו טפס לפסגה — משם רואים את הורדיבצי.", "d_mel0": "מלניצ׳וק: מי דורך לי על הורדיבצי?!", "d_mel1": "מלניצ׳וק: אמעך אותך עם ה«דלתא» כמו ג׳וק!", "d_bo0": "בוגדן: רכב? יש קופייקה, 1983, כמו חדשה. כמעט.", "d_bo1": "בוגדן: היא ברוקשין במוסך של ליאליק. אבל פאשה הג׳ינג׳י לקח את המפתחות.", "d_bo2": "בוגדן: הוא ליד הבריכה. זהירות — חונק כמו בואה.", "d_bo3": "בוגדן: המפתחות שלי! סע לרוקשין לליאליק.", "d_bo4": "בוגדן: ותבדוק שמן. ובלמים. ו… פשוט סע לאט.", "d_pa0": "פאשה הג׳ינג׳י: מפתחות? בוא הנה, נתחבק…", "d_pa1": "פאשה הג׳ינג׳י: חבר׳ה, תחזיקו אותו!", "d_ly0": "ליאליק: הקופייקה של קוניאק? רואה? בלי גלגל, מצבר וקרבורטור.", "d_ly1": "ליאליק: שיכורים גררו את החלקים לחצרות. תביא — אתקן.", "d_ly2": "ליאליק: או 400 — ואני «אמצא» משלי.", "d_ly3": "ליאליק: כסף אוהב שקט. מתקן!", "d_ly4": "ליאליק: אלה חלקים! כבר עושה.", "d_ly5": "ליאליק: מוכן! מניע בפעם השלישית — זה נורמלי.", "d_da0": "דשקביץ׳: מי העז להתקרב ל«מולטימדיה»?!", "d_da1": "דשקביץ׳: אני מלך «5 חאטקה»! המגדל שלי גבוה מהעתיד שלך!", "d_da2": "דשקביץ׳: נליסניקים, גלגלו אותו!", "t_vasyl_wolf": "וסיל בשטובי הפך לכלב רועים! גררר!", "vasyl_grr": "ג־ר־רהאו!", "t_vasyl_back": "וסיל שוב בן אדם. נעלב — לא מוכר יותר.", "bite": "נשיכה!", "vasyl_sell0": "וסיל: לחיים!", "vasyl_sell1": "וסיל: טרי מהמרתף!", "vasyl_sell2": "וסיל: עוד אחד? אני לא שופט.", "t_full": "אין מקום (5 בקבוקים).", "no_money": "אין מספיק כסף!", "t_medkit": "ערכת עזרה ראשונה הופעלה! נשארו: {0}", "grab_on": "פאשה תפס אותך! לחץ!", "grab_mash": "לחץ שוב ושוב כדי להשתחרר!", "mash_tap": "לחץ!", "grab_free": "השתחררת! פאשה המום!", "pasha_grab": "בוא הנה!", "pasha_call": "פאשה קורא לחבר׳ה!", "mel_rev": "וררום־וררום!", "mel_ram": "התנגשות!", "mel_hit": "בום!", "mel_fall": "הטוסטוס של מלניצ׳וק התפרק! עכשיו אגרופים!", "stunned": "המום!", "t_mel_come": "מלניצ׳וק יוצא על הטוסטוס!", "t_mel_dead": "מלניצ׳וק לא ידהר יותר בהורדיבצי.", "t_pasha_come": "פאשה הג׳ינג׳י יוצא!", "t_pasha_dead": "פאשה הופל! הוא הפיל את המפתחות.", "got_jar": "צנצנת ליקר!", "got_keys": "מפתחות הקופייקה!", "got_wheel": "גלגל!", "got_battery": "מצבר!", "got_carb": "קרבורטור!", "t_car_in": "אתה נוהג! היגוי בג׳ויסטיק/WASD.", "t_car_ready": "הקופייקה עובדת!", "t_car_got": "יש לך רכב — סע בין הכפרים!", "t_dashk_come": "השער נפתח… דשקביץ׳ יוצא בעצמו!", "t_dashk_dead": "הכתר של «5 חאטקה» נפל!", "dashk_call": "דשקביץ׳ קורא לנליסניקים!", "dashk_slam": "בום!", "dashk_shout0": "אני החוק!", "dashk_shout1": "המגדל שלי!", "dashk_shout2": "על הברכיים!", "nal_sh0": "נליסניקים, לקרב!", "nal_sh1": "עצור! אישור!", "nal_sh2": "למען המלך!", "nal_sh3": "גלגלו אותו!", "w_hill": "מהגבעה רואים את הורדיבצי, מלינצי ורוקשין. הדרך פתוחה!", "w_gord": "מלניצ׳וק הובס. הורדיבצי נושמת לרווחה.", "w_maly": "המפתחות אצלך. התחנה הבאה — רוקשין.", "w_ruk": "יצאת מרוקשין בקופייקה שלך! עכשיו — ל«מולטימדיה».", "w_castle": "דשקביץ׳ הופל, הנליסניקים ברחו. הדרך לגבול פנויה!"}};for(const l in A){L10N[l]=L10N[l]||{};Object.assign(L10N[l],A[l]);}})();
+
+// ================= v4 LOGIC: new weapons, shop, bosses (Мельничук, Паша Рижий, Дашкевич), Налисники, Василь, car, dog crate =================
+// ---- extra weapons (appended, indices 5..7) ----
+WEAPONS.push({id:'rifle',name:'Гвинтівка',dmg:72,cd:0.95,range:560,spread:0.006,pellets:1,ammo0:20,snd:'pistol',spd:1500,btn:''},
+ {id:'bat',name:'Бита',melee:true,dmg:58,cd:0.5,range:160,ammo0:Infinity,btn:''},{id:'axe',name:'Сокира',melee:true,dmg:92,cd:0.68,range:165,ammo0:Infinity,btn:''});
+WBASE.push(72,58,92);
+const V4MELEE={bat:1,axe:1};
+switchWeapon=function(dir){if(!G||state!=='play')return;const p=G.player,N=WEAPONS.length;let i=p.wi;for(let k=0;k<N;k++){i=(i+(dir||1)+N)%N;if(p.ammo[i]>0)break;}p.wi=i;SFX.click();updInv(true);};
+const _selW4=selectWeapon;selectWeapon=function(i){if(!G||i>=WEAPONS.length)return;const w=WEAPONS[i];if(V4MELEE[w.id]&&!owned(w.id)){toast(t('locked_w'),1200);return;}_selW4(i);};
+const _aplL4=applyLoadout;applyLoadout=function(p){_aplL4(p);WEAPONS.forEach((w,i)=>{if(V4MELEE[w.id])p.ammo[i]=owned(w.id)?Infinity:0;});
+ const k=save.kit||{};if(k.ammobox){WEAPONS.forEach((w,i)=>{if(!w.melee&&!w.thrown&&owned(w.id))p.ammo[i]+=Math.round(w.ammo0*0.6*k.ammobox);});k.ammobox=0;}
+ p.medkits=k.medkit||0;k.medkit=0;p.armor=upL('armor');
+ if(owned('axe'))p.wi=WEAPONS.findIndex(w=>w.id==='axe');else if(owned('bat')&&!owned('pistol'))p.wi=WEAPONS.findIndex(w=>w.id==='bat');
+ if(owned('rifle')&&!owned('pistol'))p.wi=5;persist();};
+const _hurtP4=hurtPlayer;hurtPlayer=function(a,silent){const p=G.player;if(!p)return;if(G.car&&G.car.in)a*=0.3;a*=1-0.12*(p.armor||0);_hurtP4(a,silent);
+ if(!p.dead&&p.medkits>0&&p.hp<p.maxHp*0.3){p.medkits--;p.hp=p.maxHp;toast(t('t_medkit',p.medkits),1600);SFX.coin();floatText(p.x,p.y-60,'+❤','#7f7');}};
+const _attack4=attack;attack=function(){if(G&&(G.grab||(G.car&&G.car.in)))return;const p=G.player,cd=p.cd;_attack4();
+ if(p.cd>cd&&V4MELEE[WEAPONS[p.wi].id]){G.shake=Math.max(G.shake,4);SFX.batSwing(p.x,p.y);}
+ if(p.cd>cd&&WEAPONS[p.wi].melee&&G.v4n)for(const n of G.v4n){if(n.gone||n.kind!=='vasyl')continue;const d=dist(p.x,p.y,n.x,n.y);const a=Math.atan2(n.y-p.y,n.x-p.x);if(d<62&&(d<30||Math.abs(angDiff(p.aim,a))<1.3))vasylWolf(n);}};
+// ---- enemy types ----
+Object.assign(ZT,{melnychuk:{hp:1700,spd:[60,60],dmg:22,tc:[99,99],r:26,scale:1.25},pasha:{hp:1400,spd:[66,66],dmg:16,tc:[99,99],r:22,scale:1.25},
+ nalysnyk:{hp:150,spd:[60,72],dmg:14,tc:[99,99],r:15,scale:1.12},dashk:{hp:4200,spd:[44,44],dmg:30,tc:[99,99],r:34,scale:2.1},shepherd:{hp:260,spd:[125,135],dmg:11,tc:[99,99],r:14,scale:1}});
+const _spawnZ4=spawnZombie;spawnZombie=function(type,x,y){const z=_spawnZ4(type,x,y);if(type==='melnychuk'||type==='pasha'||type==='dashk'){z.big=true;}z.holding=type==='thrower';return z;};
+const BOSSNAME={rumin:'boss_rumin',boss:'boss_plyash',melnychuk:'boss_mel',pasha:'boss_pasha',dashk:'boss_dashk'};
+function makeShepherdRig(){const g=new THREE.Group(),d=makeShepherd3();g.add(d);const dum=()=>new THREE.Group();const r={g,dog:d,body:dum(),torso:dum(),armL:dum(),armR:dum(),legL:dum(),legR:dum(),head:dum(),handBottle:dum(),handBottleBurn:dum(),eyes:[],meshes:[],s:1.25};
+ d.traverse(m=>{if(m.isMesh){m.userData.m0=m.material;r.meshes.push(m);}});return r;}
+const _mkZ4=makeZombie;makeZombie=function(z){if(z.type==='melnychuk')return makeMelnychuk3();if(z.type==='pasha')return makePasha3();if(z.type==='nalysnyk')return makeNalysnyk3();if(z.type==='dashk')return makeDashkevich3();if(z.type==='shepherd')return makeShepherdRig();return _mkZ4(z);};
+function hitP(z,tg,dmg,kb,key,txt){const p=G.player,d=Math.max(1,dist(z.x,z.y,tg.x,tg.y)),ux=(tg.x-z.x)/d,uy=(tg.y-z.y)/d;
+ if(tg===p){G.lastHit=key;hurtPlayer(dmg);p.kx=ux*kb;p.ky=uy*kb;if(txt)floatText(p.x,p.y-60,txt,'#ff5050');}else hurtNpc(tg,dmg*0.6);}
+const V4AI={
+ shepherd(z,tg,d,dt,i){z.bite=(z.bite||0)-dt;const spd=z.spd*(z.blind>0?0.6:1);
+  if(d<z.r+tg.r+10){z.wantFace=Math.atan2(tg.y-z.y,tg.x-z.x);if(z.bite<=0){z.bite=0.75;z.biteA=0.25;hitP(z,tg,z.dmg,220,'shepherd',t('bite'));SFX.bark(z.x,z.y);}}
+  else stepToward(z,tg.x,tg.y,spd,dt,i);z.biteA=Math.max(0,(z.biteA||0)-dt);},
+ nalysnyk(z,tg,d,dt,i){const p=G.player;z.punchCd=(z.punchCd||rand(0.3,1))-dt;
+  if(z.guard&&!z.alert){if(G.alarm>0||(tg===p&&d<250&&los(z.x,z.y-20,p.x,p.y-20))||z.hp<z.maxHp){z.alert=true;G.alarm=Math.max(G.alarm||0,3);floatText(z.x,z.y-80,'!','#ff3030');floatText(z.x,z.y-60,t('nal_sh'+ri(0,3)),'#ffd23f');SFX.whistle(z.x,z.y);}
+   else{z.gt=(z.gt||0)-dt;if(z.gt<=0||!z.gp){z.gt=rand(2,4);z.gp={x:z.guard.x+rand(-60,60),y:z.guard.y+rand(-60,60)};}if(dist(z.x,z.y,z.gp.x,z.gp.y)>8)stepToward(z,z.gp.x,z.gp.y,26,dt,i);return;}}
+  if(z.punch>0){z.punch-=dt;z.wantFace=Math.atan2(tg.y-z.y,tg.x-z.x);if(!z.hit&&z.punch<0.15){z.hit=true;if(d<z.r+tg.r+30){hitP(z,tg,z.dmg,320,'nalysnyk');SFX.thud(z.x,z.y);G.shake=Math.max(G.shake,5);}else SFX.batSwing(z.x,z.y);}return;}
+  if(d<z.r+tg.r+22&&z.punchCd<=0){z.punch=0.38;z.hit=false;z.punchCd=rand(0.9,1.3);return;}
+  if(d>z.r+tg.r+6)stepToward(z,tg.x,tg.y,z.spd*(z.blind>0?0.6:1),dt,i);},
+ melnychuk(z,tg,d,dt,i){const p=G.player;z.st=z.st||'circle';z.stT=(z.stT===undefined?2:z.stT)-dt;const onM=!z.walk;
+  if(onM&&z.hp<z.maxHp*0.4){z.walk=true;z.st='fall';z.stT=1.2;G.shake=14;toast(t('mel_fall'),2200);addFire(z.x,z.y,30,6);SFX.glass(z.x,z.y);for(let k=0;k<14;k++)part({t:'poof',x:z.x+rand(-20,20),y:z.y,z:0,vx:rand(-60,60),vy:rand(-30,30),vz:0,life:0.8,s:10});
+   G.v4wreck={x:z.x,y:z.y,a:z.wantFace||0};return;}
+  if(z.st==='fall'){if(z.stT<=0){z.st='walk';}return;}
+  if(!onM){ // on foot: heavy haymakers
+   z.punchCd=(z.punchCd||0)-dt;if(z.punch>0){z.punch-=dt;if(!z.hit&&z.punch<0.2){z.hit=true;if(d<z.r+tg.r+40){hitP(z,tg,34,820,'melnychuk',t('mel_hit'));G.shake=16;SFX.batHit(z.x,z.y);}else SFX.batSwing(z.x,z.y);}return;}
+   if(d<z.r+tg.r+30&&z.punchCd<=0){z.punch=0.6;z.hit=false;z.punchCd=1.2;return;}stepToward(z,tg.x,tg.y,82,dt,i);return;}
+  z.walkT+=dt*3;
+  if(z.st==='circle'){const a=Math.atan2(z.y-tg.y,z.x-tg.x)+dt*0.9,R=240;const tx=tg.x+Math.cos(a)*R,ty=tg.y+Math.sin(a)*R;stepToward(z,tx,ty,150,dt,i);if(z.stT<=0){z.st='rev';z.stT=0.75;SFX.batSwing(z.x,z.y);floatText(z.x,z.y-90,t('mel_rev'),'#ffd23f');}}
+  else if(z.st==='rev'){z.wantFace=Math.atan2(tg.y-z.y,tg.x-z.x);z.cdir=z.wantFace;if(z.stT<=0){z.st='ram';z.stT=1.25;z.rhit=false;}}
+  else if(z.st==='ram'){const sp=430,ux=Math.cos(z.cdir),uy=Math.sin(z.cdir);const m=moveE(z,ux*sp*dt,uy*sp*dt);z.wantFace=z.cdir;
+   if(Math.random()<0.5)part({t:'poof',x:z.x-ux*30,y:z.y-uy*30,z:0,vx:-ux*40,vy:-uy*40,vz:0,life:0.5,s:7});
+   if(!z.rhit&&dist(z.x,z.y,p.x,p.y)<z.r+p.r+14&&!p.dead){z.rhit=true;G.lastHit='melnychuk';hurtPlayer(30);p.kx=ux*1000+(-uy)*300;p.ky=uy*1000+ux*300;G.shake=18;SFX.kick(z.x,z.y);floatText(p.x,p.y-60,t('mel_ram'),'#ff5050');}
+   for(const o of G.zombies)if(o!==z&&!o.dead&&dist(o.x,o.y,z.x,z.y)<z.r+o.r)hurtZombie(o,60,ux*400,uy*400);
+   if(m<sp*dt*0.3){z.st='stun';z.stT=1.6;G.shake=12;SFX.thud(z.x,z.y);floatText(z.x,z.y-90,t('stunned'),'#fff');}else if(z.stT<=0){z.st='circle';z.stT=rand(1.6,2.6);}}
+  else if(z.st==='stun'){if(z.stT<=0){z.st='circle';z.stT=rand(1.4,2.2);}}},
+ pasha(z,tg,d,dt,i){const p=G.player;z.gcd=(z.gcd===undefined?2:z.gcd)-dt;z.pcd=(z.pcd||0)-dt;z.callT=(z.callT===undefined?12:z.callT)-dt;
+  if(z.callT<=0){z.callT=18;for(let k=0;k<2;k++)spawnFar(pick(['walker','runner']));toast(t('pasha_call'),1500);}
+  if(z.stun>0){z.stun-=dt;return;}
+  if(G.grab&&G.grab.z===z){z.wantFace=Math.atan2(p.y-z.y,p.x-z.x);return;}
+  if(z.lunge>0){z.lunge-=dt;if(z.lunge<0.3){const ux=Math.cos(z.ldir),uy=Math.sin(z.ldir);moveE(z,ux*340*dt,uy*340*dt);
+    if(tg===p&&!p.dead&&dist(z.x,z.y,p.x,p.y)<z.r+p.r+12){z.lunge=0;G.grab={z,n:0,need:[8,11,15][dI()]||11,t:0,last:true};toast(t('grab_on'),1800);SFX.groan(z.x,z.y,true);}}return;}
+  if(z.punch>0){z.punch-=dt;if(!z.hit&&z.punch<0.15){z.hit=true;if(d<z.r+tg.r+28){hitP(z,tg,16,380,'pasha');SFX.thud(z.x,z.y);}}return;}
+  if(d<240&&d>60&&z.gcd<=0&&tg===p){z.lunge=0.75;z.ldir=Math.atan2(tg.y-z.y,tg.x-z.x);z.wantFace=z.ldir;z.gcd=rand(4,6);floatText(z.x,z.y-90,t('pasha_grab'),'#ffd23f');return;}
+  if(d<z.r+tg.r+20&&z.pcd<=0){z.punch=0.4;z.hit=false;z.pcd=1;return;}
+  stepToward(z,tg.x,tg.y,z.spd*(z.blind>0?0.6:1)*(z.hp<z.maxHp*0.5?1.2:1),dt,i);},
+ dashk(z,tg,d,dt,i){const p=G.player,enr=z.hp<z.maxHp*0.5;z.scd=(z.scd===undefined?3:z.scd)-dt;z.dcd=(z.dcd===undefined?2:z.dcd)-dt;z.callT=(z.callT===undefined?10:z.callT)-dt;
+  if(z.callT<=0){z.callT=enr?11:15;for(let k=0;k<(enr?3:2);k++){const s=spawnFar('nalysnyk');if(s)s.alert=true;}toast(t('dashk_call'),1600);}
+  if(z.slam>0){z.slam-=dt;if(!z.hit&&z.slam<0.25){z.hit=true;G.shake=22;SFX.kick(z.x,z.y);G.impacts.push({x:z.x,y:z.y,t:0});G.v4waves=G.v4waves||[];G.v4waves.push({x:z.x,y:z.y,t:0});
+    for(let k=0;k<18;k++){const a=k/18*6.28;part({t:'poof',x:z.x+Math.cos(a)*60,y:z.y+Math.sin(a)*40,z:0,vx:Math.cos(a)*160,vy:Math.sin(a)*100,vz:0,life:0.7,s:12});}
+    if(dist(z.x,z.y,p.x,p.y)<150&&!p.dead)hitP(z,p,30,900,'dashk',t('dashk_slam'));for(const n of G.npcs)if(!n.dead&&dist(z.x,z.y,n.x,n.y)<150)hurtNpc(n,15);}return;}
+  if(z.disc>0){z.disc-=dt;if(!z.thrown&&z.disc<0.2){z.thrown=true;const n=enr?5:3;const a0=Math.atan2(tg.y-z.y,tg.x-z.x);for(let k=0;k<n;k++){const a=a0+(k-(n-1)/2)*0.22;(G.v4proj=G.v4proj||[]).push({x:z.x+Math.cos(a)*40,y:z.y+Math.sin(a)*40,vx:Math.cos(a)*330,vy:Math.sin(a)*330,life:2.4,dmg:14,kind:'disc'});}SFX.throwS(z.x,z.y);}return;}
+  if(d<z.r+tg.r+60&&z.scd<=0){z.slam=0.9;z.hit=false;z.scd=enr?1.8:2.6;floatText(z.x,z.y-140,t('dashk_shout'+ri(0,2)),'#ffd23f');return;}
+  if(d>150&&d<600&&z.dcd<=0){z.disc=0.6;z.thrown=false;z.dcd=enr?2.2:3.2;return;}
+  stepToward(z,tg.x,tg.y,(enr?58:44)*(z.blind>0?0.7:1),dt,i);},
+};
+// ---- helpers: money, dialog queue, NPCs, quest items, car ----
+function v4money(){return save.money+(G?G.money||0:0);}
+function v4pay(v){if(v4money()<v)return false;const a=Math.min(G.money||0,v);G.money-=a;save.money-=v-a;persist();hudCache.money=null;SFX.buy&&SFX.buy();return true;}
+function say(lines){G.v4say=(G.v4say||[]).concat(lines);if(!G.v4sayT)G.v4sayT=0.01;}
+function addNpc(kind,x,y,o){const n=Object.assign({kind,x,y,r:14,k:0,face:Math.PI/2},o||{});(G.v4n=G.v4n||[]).push(n);G.level.solids.push(n.solid={x:x-9,y:y-7,w:18,h:14});return n;}
+function addItem(kind,x,y,o){const it=Object.assign({kind,x,y,taken:false,t:rand(0,6)},o||{});(G.v4it=G.v4it||[]).push(it);return it;}
+function addProp(mk,x,y,o){const pr=Object.assign({mk,x,y,rot:0},o||{});(G.v4p=G.v4p||[]).push(pr);if(pr.solid)G.level.solids.push({x:x-pr.solid[0]/2,y:y-pr.solid[1]/2,w:pr.solid[0],h:pr.solid[1]});return pr;}
+function hillH(x,y){let h=0;if(G&&G.v4hills)for(const q of G.v4hills){const d=dist(x,y,q.x,q.y)/q.r;if(d<1){const f=1-d*d;h=Math.max(h,q.h*f*f*(3-2*f));}}return h;}
+// NPC interaction: returns the npc being used (hold E / ДІЯ)
+function v4npcs(dt){const p=G.player;let best=null,bd=1e9;
+ if(G.v4n)for(const n of G.v4n){if(n.gone)continue;const lab=n.act?n.act():null;n.lab=lab;const d=dist(p.x,p.y,n.x,n.y);if(lab&&d<80&&d<bd){bd=d;best=n;}}
+ if(G.car&&!G.car.locked){const d=dist(p.x,p.y,G.car.x,G.car.y);if((G.car.in||d<90)&&(!best||d<bd)){best=G.car;G.car.lab=G.car.in?'exit':'car';}}
+ if(best){best.k=holdAct(dt,true,best.lab,best.k||0,best===G.car?3:2.4);G.actK=best.k;if(best.k>=1){best.k=0;if(best===G.car)carToggle();else best.use&&best.use(best.lab);}}
+ else{G.canBurn=false;G.actK=undefined;}return best;}
+function carToggle(){const c=G.car,p=G.player;if(!c.in){c.in=true;c.spd=0;SFX.door&&SFX.door(c.x,c.y);toast(t('t_car_in'),1600);}
+ else{c.in=false;c.spd=0;const a=c.a+Math.PI/2;for(const s of [1,-1]){const x=c.x+Math.cos(a)*s*50,y=c.y+Math.sin(a)*s*50;if(!solidAt(x,y,12)){p.x=x;p.y=y;break;}}SFX.door&&SFX.door(c.x,c.y);}}
+function carUpdate(dt){const c=G.car;if(!c)return;const p=G.player;c.wheel=(c.wheel||0);
+ if(c.in&&!p.dead){let mx=input.mx,my=input.my;if(keys.KeyA||keys.ArrowLeft)mx=-1;if(keys.KeyD||keys.ArrowRight)mx=1;if(keys.KeyW||keys.ArrowUp)my=-1;if(keys.KeyS||keys.ArrowDown)my=1;
+  const m=Math.hypot(mx,my);if(m>0.2){const want=Math.atan2(my,mx);const da=angDiff(c.a,want);c.a+=clamp(da,-2.8*dt,2.8*dt);c.spd=Math.min(300,c.spd+380*dt*(Math.abs(da)<1.6?1:-0.6));}else c.spd*=Math.pow(0.15,dt);
+  const ux=Math.cos(c.a),uy=Math.sin(c.a),e={x:c.x,y:c.y,cr:22};const mv=moveE(e,ux*c.spd*dt,uy*c.spd*dt);if(mv<Math.abs(c.spd*dt)*0.3&&c.spd>60){c.spd*=-0.3;G.shake=Math.max(G.shake,6);SFX.thud(c.x,c.y);}c.x=e.x;c.y=e.y;
+  c.wheel+=c.spd*dt;p.x=c.x;p.y=c.y;p.moving=false;p.aim=c.a;
+  if(Math.abs(c.spd)>90)for(const z of G.zombies){if(z.dead||z.big&&z.type!=='melnychuk'&&z.type!=='pasha')continue;if(dist(z.x,z.y,c.x+ux*30,c.y+uy*30)<z.r+30){if(!z.carHit||T-z.carHit>0.6){z.carHit=T;hurtZombie(z,z.big?60:120,ux*600,uy*600);SFX.kick(z.x,z.y);G.shake=Math.max(G.shake,8);}}}
+  if(Math.random()<Math.abs(c.spd)/600)part({t:'poof',x:c.x-ux*50,y:c.y-uy*50,z:5,vx:-ux*30,vy:-uy*30,vz:10,life:0.6,s:6});}}
+function vasylWolf(n){if(n.gone)return;n.gone=true;G.level.solids=G.level.solids.filter(s=>s!==n.solid);G.shake=14;G.vign=0.6;
+ for(let k=0;k<30;k++){const a=rand(0,6.28),s=rand(40,220);part({t:'poof',x:n.x+Math.cos(a)*10,y:n.y+Math.sin(a)*8,z:rand(0,40),vx:Math.cos(a)*s,vy:Math.sin(a)*s*0.6,vz:rand(20,90),life:rand(0.6,1.2),s:rand(8,16)});}
+ for(let k=0;k<16;k++)part({t:'fire',x:n.x+rand(-14,14),y:n.y,z:rand(10,60),vx:0,vy:0,vz:rand(40,90),life:0.5,s:6});
+ G.v4flash={x:n.x,y:n.y,t:0};SFX.groan(n.x,n.y,true);setTimeout(()=>{if(G)SFX.bark(n.x,n.y);},350);
+ floatText(n.x,n.y-80,t('vasyl_grr'),'#ffb040');toast(t('t_vasyl_wolf'),2600);const z=spawnZombie('shepherd',n.x,n.y+4);z.vasyl=n;z.alertT=0;}
+// ---- dog-crate hint (mission 1) ----
+SFX.whine=function(x,y){if(!this.ok())return;const c=this.ctx,t0=c.currentTime,s=this.sp(x,y);const out=this.bus(0.55*Math.max(0.35,s.v),s.p,0.15);
+ [0,0.5].forEach((d,i)=>{const o=c.createOscillator();o.type='triangle';o.frequency.setValueAtTime(820,t0+d);o.frequency.linearRampToValueAtTime(1350-i*120,t0+d+0.18);o.frequency.linearRampToValueAtTime(700,t0+d+0.42);
+  const lfo=c.createOscillator();lfo.frequency.value=11;const lg=c.createGain();lg.gain.value=28;lfo.connect(lg);lg.connect(o.frequency);const e=c.createGain();this.env(e,t0+d,0.04,0.8,0.38);const b=this.filt('bandpass',1100,3);o.connect(b);b.connect(e);e.connect(out);o.start(t0+d);o.stop(t0+d+0.46);lfo.start(t0+d);lfo.stop(t0+d+0.46);});};
+const _m0setup=MISSIONS[0].setup;MISSIONS[0].setup=function(G){_m0setup.call(this,G);const cr=G.crates.find(c=>c.content==='dog');
+ if(cr&&!save.dog){G.level.solids=G.level.solids.filter(s=>s!==cr.solid);cr.x=455;cr.y=2075;cr.solid={x:cr.x-16,y:cr.y-12,w:32,h:24,crate:true};G.level.solids.push(cr.solid);cr.marked=true;G.dogCrate=cr;G.dogHintT=1.2;G.whineT=2;}
+ else if(cr){cr.content='drink';}};
+// ---- per-frame extra update ----
+const _xu4=extraUpdate;extraUpdate=function(dt){_xu4(dt);const g=G,p=g.player;
+ // dialog queue
+ if(g.v4say&&g.v4say.length){g.v4sayT-=dt;if(g.v4sayT<=0){const l=g.v4say.shift();toast(l,3400);g.v4sayT=3.2;}}
+ // dog crate hint + whine
+ if(g.dogCrate&&!g.dogCrate.broken){g.dogHintT-=dt;if(g.dogHintT<=0&&!g.dogHinted){g.dogHinted=true;toast(t('dog_hint'),3600);floatText(g.dogCrate.x,g.dogCrate.y-50,t('dog_whine'),'#fff');SFX.whine(g.dogCrate.x,g.dogCrate.y);}
+  g.whineT-=dt;const dd=dist(p.x,p.y,g.dogCrate.x,g.dogCrate.y);if(g.whineT<=0&&dd<900){g.whineT=dd<300?2.2:3.6;SFX.whine(g.dogCrate.x,g.dogCrate.y);floatText(g.dogCrate.x,g.dogCrate.y-45,t('dog_whine'),'#fff');}}
+ // grab / choke (Паша Рижий)
+ if(g.grab){const gr=g.grab,z=gr.z;gr.t+=dt;if(z.dead||p.dead||g.result){g.grab=null;}else{
+   const a=Math.atan2(p.y-z.y,p.x-z.x);p.x=z.x+Math.cos(a)*(z.r+p.r-2);p.y=z.y+Math.sin(a)*(z.r+p.r-2);p.kx=p.ky=0;p.moving=false;
+   G.lastHit='pasha';hurtPlayer(9*dt,true);g.vign=Math.max(g.vign,0.35+0.15*Math.sin(T*10));
+   const pr=!!(input.fire||keys.Space||input.burn||keys.KeyE||input.mash);if(pr&&!gr.last){gr.n++;G.shake=Math.max(G.shake,3);floatText(p.x+rand(-20,20),p.y-70,t('mash_tap'),'#fff');}gr.last=pr;input.mash=false;
+   if(gr.n>=gr.need){g.grab=null;z.stun=2.2;const ux=Math.cos(a),uy=Math.sin(a);z.kx=-ux*500;z.ky=-uy*500;p.kx=ux*500;p.ky=uy*500;toast(t('grab_free'),1600);SFX.kick(z.x,z.y);hurtZombie(z,60,0,0);}
+   else if(gr.t>5.5){g.grab=null;hurtPlayer(22);p.kx=Math.cos(a)*700;p.ky=Math.sin(a)*700;z.gcd=4;}}}
+ // projectiles (Дашкевич discs)
+ if(g.v4proj){for(const q of g.v4proj){q.life-=dt;q.x+=q.vx*dt;q.y+=q.vy*dt;if(pointSolid(q.x,q.y))q.life=0;if(q.life>0&&!p.dead&&dist(q.x,q.y,p.x,p.y)<p.r+10){q.life=0;G.lastHit='dashk';hurtPlayer(q.dmg);SFX.glass(q.x,q.y);}}g.v4proj=g.v4proj.filter(q=>q.life>0);}
+ if(g.v4waves){for(const w of g.v4waves)w.t+=dt;g.v4waves=g.v4waves.filter(w=>w.t<0.8);}
+ if(g.v4flash){g.v4flash.t+=dt;if(g.v4flash.t>0.7)g.v4flash=null;}
+ // Василь: bullets that hit him also trigger the transformation; shepherd defeated -> human again
+ if(g.v4n)for(const n of g.v4n){if(n.kind!=='vasyl'||n.gone)continue;for(const b of g.bullets){if(b.owner!=='z'&&b.life>0&&dist(b.x,b.y,n.x,n.y)<18){b.life=0;vasylWolf(n);break;}}}
+ for(const z of g.zombies)if(z.type==='shepherd'&&z.dead&&z.vasyl&&!z.back){z.back=true;const n=z.vasyl;n.gone=false;n.x=z.x;n.y=z.y;n.angry=true;n.solid={x:n.x-9,y:n.y-7,w:18,h:14};g.level.solids.push(n.solid);toast(t('t_vasyl_back'),2600);G.v4flash={x:n.x,y:n.y,t:0};}
+ carUpdate(dt);
+ if(g.v4quest)g.v4quest(dt);
+};
+// bottle trade (Василь Баштовий)
+function vasylAct(n){return n.angry?null:'buy';}
+function vasylUse(n){const p=G.player;if(p.drinks>=5){toast(t('t_full'),1400);return;}if(!v4pay(25)){toast(t('no_money'),1400);return;}p.drinks++;hudCache.dr=null;toast(t('vasyl_sell'+ri(0,2)),1800);floatText(p.x,p.y-60,'+🍾','#7f7');}
+function addVasyl(x,y){const n=addNpc('vasyl',x,y,{name:'n_vasyl'});n.act=()=>vasylAct(n);n.use=()=>vasylUse(n);addProp(()=>makeStall3(),x,y-34,{solid:[120,40]});return n;}
+
+// ================= v4 MISSIONS: Пригорок, Гордівці, Малинці, Рукшин, «Мультимедіа» =================
+REWARD.push(250,350,320,400,900);
+const V4IDX={hill:8,gord:9,maly:10,ruk:11,castle:12};
+const V4REQ={8:[1],9:[8],10:[9],11:[10],12:[11,5]};
+const QORDER=[0,1,8,2,9,3,10,4,11,5,12,6,7];
+function v4unlocked(i){const r=V4REQ[i];return !r||r.every(k=>save.done.includes(k));}
+function hasCar(){return save.done.includes(11);}
+function v4car(x,y,a,o){G.car=Object.assign({x,y,a:a||-Math.PI/2,spd:0,in:false,k:0,wheel:0},o||{});return G.car;}
+function signP(names,x,y){return addProp(()=>makeSignpost3(names.map(n=>t(n))),x,y,{solid:[10,10]});}
+function stdLoot(G,list){for(const [c,x,y] of list)addCrate(x,y,c);}
+function nearP(x,y,r){const p=G.player;return dist(p.x,p.y,x,y)<r;}
+function spawnGroup(type,x,y,n,sp){const out=[];for(let k=0;k<n;k++){let px=x+rand(-sp,sp),py=y+rand(-sp,sp);for(let j=0;j<8&&solidAt(px,py,14);j++){px=x+rand(-sp,sp);py=y+rand(-sp,sp);}out.push(spawnZombie(type,px,py));}return out;}
+// ---------- 9. Пригорок ----------
+MISSIONS.push({id:'hill',col:'#7cb342',roof:'#33691e',setup(G){
+ const L=vLevel(1500,2300,0.3);villageRoad(L,750,170,1150,2300,[1550,1900],250,140);
+ L.roads.push({x:420,y:1080,w:660,h:110});puddlesOn(L,{x:420,y:1080,w:660,h:110},2);
+ treesAround(L,26,[[30,60,330,1000],[1170,60,1470,1000],[40,1150,300,1400],[1200,1150,1460,1400]]);
+ addP(L,{type:'cross',x:1080,y:1240,sr:5});
+ finishLevel(L);G.level=L;placeP(G,750,2180);G.v4hills=[{x:750,y:560,r:400,h:3.4}];
+ addProp(()=>makeHill3(20,3.4),750,560,{hill:true});
+ const vas=addVasyl(980,1135);signP(['sp_gord','sp_maly','sp_ruk'],560,1135);
+ const jars=[addItem('jar',600,430),addItem('jar',260,820),addItem('jar',1270,640)];
+ stdLoot(G,[['drink',880,1980],['med',600,1700],['molotov',1000,1600]]);lootSpread(G,[['butt',750,1300],['money',300,1120],['drink',1200,1120]]);
+ addChickens(L,6,[[150,1500,450,1700],[1050,1500,1350,1700]]);
+ for(let i=0;i<5;i++)spawnZombie(pick(['walker','walker','runner']),rand(350,1150),rand(250,950));
+ if(hasCar())v4car(860,2150);
+ G.m={st:0,spawnT:6,
+  target(){if(this.st===0||this.st===2)return vas;if(this.st===1){const j=jars.find(j=>!j.taken);return j||vas;}return{x:750,y:560};},
+  objective(){return [t('o_hill0'),t('o_hill1',jars.filter(j=>j.taken).length),t('o_hill2'),t('o_hill3')][this.st];},
+  update(dt){if(G.result)return;const p=G.player;
+   vas.act=()=>this.st===0?'talk':this.st===2?'give':vas.angry?null:'buy';
+   vas.use=(lab)=>{if(lab==='talk'){say([t('d_vas0'),t('d_vas1'),t('d_vas2')]);this.st=1;for(const j of jars)spawnGroup('walker',j.x,j.y+60,2,40);}
+    else if(lab==='give'){say([t('d_vas3'),t('d_vas4')]);addMoney(120,vas.x,vas.y);this.st=3;}else vasylUse(vas);};
+   v4npcs(dt);
+   for(const j of jars)if(!j.taken&&dist(p.x,p.y,j.x,j.y)<34){j.taken=true;SFX.coin();floatText(j.x,j.y-40,t('got_jar'),'#ffd23f');if(jars.every(q=>q.taken)){this.st=Math.max(this.st,2);toast(t('o_hill2'),2000);}}
+   if(this.st===3&&dist(p.x,p.y,750,560)<70){G.noDrops=true;for(const z of G.zombies)if(!z.dead)z.burn=99;win(t('w_hill'));}
+   this.spawnT-=dt;if(this.spawnT<=0&&alive()<9){spawnFar(wpick([['walker',4],['runner',2],['thrower',1]]));this.spawnT=rand(4,7);}}};
+}});
+// ---------- 10. Гордівці: Мельничук ----------
+MISSIONS.push({id:'gord',col:'#c0392b',roof:'#5d1f17',setup(G){
+ const L=vLevel(1300,2900,0.35);villageRoad(L,650,170,420,2900,[600,1000,1450,1850,2250],250,140);
+ L.roads.push({x:0,y:1250,w:1300,h:110});L.pave.push({x:260,y:60,w:780,h:380,col:'#857a66'});
+ addB(L,{kind:'shed',x:900,y:90,w:130,h:90,wallH:50});addP(L,{type:'hay',x:330,y:140,sr:24});addP(L,{type:'barrel',x:1000,y:330});addP(L,{type:'barrel',x:300,y:360});
+ treesAround(L,14,[[20,60,240,560],[1060,60,1280,560]]);
+ finishLevel(L);G.level=L;placeP(G,650,2780);
+ signP(['sp_gord','sp_chep'],520,2820);const vas=addVasyl(1010,1290);
+ stdLoot(G,[['drink',560,2600],['molotov',760,2000],['med',560,1100],['drink',760,700]]);lootSpread(G,[['butt',650,1300],['money',420,1300],['money',880,1300]]);
+ addChickens(L,8,[[260,1270,560,1340],[400,120,800,400]]);
+ for(let i=0;i<8;i++)spawnZombie(pick(['walker','walker','runner','thrower']),rand(560,740),rand(500,2300));
+ if(hasCar())v4car(760,2760);let boss=null;
+ G.m={st:0,spawnT:5,
+  target(){return this.st===0?{x:650,y:330}:boss&&!boss.dead?{x:boss.x,y:boss.y}:null;},
+  objective(){return this.st===0?t('o_gord0'):boss.dead?t('o_boss_dead'):t('o_gord1',Math.ceil(boss.hp/boss.maxHp*100));},
+  onKill(z){if(z===boss){G.noDrops=true;for(const o of G.zombies)if(!o.dead)o.burn=99;G.shake=15;moneyBurst(z.x,z.y,180,6);toast(t('t_mel_dead'),2400);win(t('w_gord'));}},
+  update(dt){if(G.result)return;const p=G.player;vas.act=()=>vas.angry?null:'buy';vas.use=()=>vasylUse(vas);v4npcs(dt);
+   if(this.st===0&&p.y<620){this.st=1;boss=spawnZombie('melnychuk',650,120);boss.wantFace=Math.PI/2;toast(t('t_mel_come'),2600);say([t('d_mel0'),t('d_mel1')]);SFX.whistle(650,120);}
+   this.spawnT-=dt;if(this.spawnT<=0&&alive()<(this.st?7:10)){spawnFar(wpick([['walker',4],['runner',2],['thrower',2]]));this.spawnT=rand(4,6);}}};
+}});
+// ---------- 11. Малинці: Богдан Коняк + Паша Рижий ----------
+MISSIONS.push({id:'maly',col:'#8e44ad',roof:'#4a235a',setup(G){
+ const L=vLevel(1400,2500,0.3);villageRoad(L,700,170,520,2500,[560,900,1500,1900],250,140);
+ L.roads.push({x:0,y:1200,w:1400,h:110});L.pave.push({x:380,y:60,w:640,h:400,col:'#7a8a5a'});
+ L.puddles.push({x:560,y:220,r:90,k:0.8},{x:860,y:300,r:70,k:0.8});
+ treesAround(L,16,[[20,60,350,500],[1050,60,1380,500]]);addP(L,{type:'woodpile',x:980,y:120,sr:18});
+ finishLevel(L);G.level=L;placeP(G,700,2380);
+ signP(['sp_maly','sp_ruk'],570,2420);
+ const bo=addNpc('bohdan',930,1245,{name:'n_bohdan'});const vas=addVasyl(420,1245);
+ stdLoot(G,[['drink',600,2200],['molotov',800,1700],['med',600,800],['drink',1180,1180]]);lootSpread(G,[['butt',700,1250],['money',200,1250]]);
+ addChickens(L,6,[[1000,1210,1300,1300]]);
+ for(let i=0;i<6;i++)spawnZombie(pick(['walker','runner','thrower']),rand(610,790),rand(1400,2200));
+ if(hasCar())v4car(810,2350);let boss=null,keysIt=null;
+ G.m={st:0,spawnT:6,
+  target(){return this.st===0||this.st===4?bo:this.st===1?{x:700,y:300}:this.st===2&&boss?{x:boss.x,y:boss.y}:keysIt&&!keysIt.taken?keysIt:bo;},
+  objective(){return [t('o_maly0'),t('o_maly1'),boss?t('o_maly2',Math.ceil(boss.hp/boss.maxHp*100)):'',t('o_maly3'),t('o_maly4')][this.st];},
+  onKill(z){if(z===boss){G.shake=14;moneyBurst(z.x,z.y,150,5);toast(t('t_pasha_dead'),2400);keysIt=addItem('keys',z.x,z.y);this.st=3;G.grab=null;}},
+  update(dt){if(G.result)return;const p=G.player;
+   bo.act=()=>this.st===0?'talk':this.st===4?'give':null;
+   bo.use=(lab)=>{if(lab==='talk'){say([t('d_bo0'),t('d_bo1'),t('d_bo2')]);this.st=1;}else{say([t('d_bo3'),t('d_bo4')]);this.st=5;G.noDrops=true;for(const z of G.zombies)if(!z.dead)z.burn=99;win(t('w_maly'));}};
+   vas.act=()=>vas.angry?null:'buy';vas.use=()=>vasylUse(vas);v4npcs(dt);
+   if(this.st===1&&p.y<820){this.st=2;boss=spawnZombie('pasha',700,240);spawnGroup('walker',700,300,3,90);toast(t('t_pasha_come'),2600);say([t('d_pa0'),t('d_pa1')]);}
+   if(this.st===3&&keysIt&&!keysIt.taken&&dist(p.x,p.y,keysIt.x,keysIt.y)<34){keysIt.taken=true;SFX.coin();floatText(p.x,p.y-60,t('got_keys'),'#ffd23f');this.st=4;}
+   this.spawnT-=dt;if(this.spawnT<=0&&alive()<9){spawnFar(wpick([['walker',4],['runner',2],['thrower',1]]));this.spawnT=rand(4,7);}}};
+}});
+// ---------- 12. Рукшин: СТО «Лялик» ----------
+MISSIONS.push({id:'ruk',col:'#2a4a7a',roof:'#16263f',setup(G){
+ const L=vLevel(1600,2700,0.3);villageRoad(L,500,170,300,2700,[650,1050,1500,1900,2300],250,140);
+ L.roads.push({x:585,y:560,w:1000,h:120});L.pave.push({x:920,y:250,w:520,h:430,col:'#6f6f6a'});
+ treesAround(L,14,[[700,60,900,500],[1450,60,1590,700],[1000,800,1580,1300]]);
+ finishLevel(L);G.level=L;placeP(G,500,2580);
+ addProp(()=>makeGarage3(10,7),1180,330,{solid:[200,140]});signP(['sp_ruk','sp_maly'],370,2620);
+ const ly=addNpc('lyalyk',1060,470,{name:'n_lyalyk'});v4car(1260,520,Math.PI,{locked:true,broken:true});
+ const parts=[addItem('wheel',1350,1150),addItem('battery',170,1760),addItem('carb',860,2050)];
+ for(const it of parts){spawnGroup('walker',it.x,it.y,2,60);}spawnZombie('fat',parts[2].x+40,parts[2].y);
+ stdLoot(G,[['drink',620,2450],['med',360,1300],['molotov',620,900],['drink',1400,600]]);lootSpread(G,[['butt',500,1600],['money',650,620]]);
+ G.m={st:0,spawnT:6,rep:0,
+  target(){if(this.st===0||this.st===2)return ly;if(this.st===1){const q=parts.find(q=>!q.taken);return q||ly;}if(this.st===3)return ly;if(this.st===4)return G.car;return{x:500,y:2600};},
+  objective(){const n=parts.filter(q=>q.taken).length;return [t('o_ruk0'),t('o_ruk1',n,v4money()>=400?t('o_ruk_pay'):''),t('o_ruk2'),t('o_ruk3',Math.round(this.rep*100)),t('o_ruk4'),t('o_ruk5')][this.st];},
+  update(dt){if(G.result)return;const p=G.player;
+   ly.act=()=>this.st===0?'talk':this.st===1?(v4money()>=400?'pay':null):this.st===2?'give':null;
+   ly.use=(lab)=>{if(lab==='talk'){say([t('d_ly0'),t('d_ly1'),t('d_ly2')]);this.st=1;}
+    else if(lab==='pay'){if(v4pay(400)){say([t('d_ly3')]);this.st=3;}}else if(lab==='give'){say([t('d_ly4')]);this.st=3;}};
+   v4npcs(dt);
+   for(const q of parts)if(!q.taken&&dist(p.x,p.y,q.x,q.y)<34){q.taken=true;SFX.coin();floatText(q.x,q.y-40,t('got_'+q.kind),'#ffd23f');if(parts.every(o=>o.taken)&&this.st===1)this.st=2;}
+   if(this.st===3){this.rep+=dt/4.5;if(Math.random()<dt*3){SFX.thud(G.car.x,G.car.y);for(let k=0;k<4;k++)part({t:'fire',x:G.car.x+rand(-30,30),y:G.car.y+rand(-10,10),z:rand(10,30),vx:rand(-60,60),vy:0,vz:rand(40,120),life:0.3,s:3});}
+    if(this.rep>=1){this.st=4;G.car.locked=false;G.car.broken=false;toast(t('t_car_ready'),2600);say([t('d_ly5')]);}}
+   if(this.st===4&&G.car.in){this.st=5;toast(t('o_ruk5'),2000);}
+   if(this.st>=4&&G.car.in&&dist(G.car.x,G.car.y,500,2600)<110){G.noDrops=true;for(const z of G.zombies)if(!z.dead)z.burn=99;win(t('w_ruk'));}
+   this.spawnT-=dt;if(this.spawnT<=0&&alive()<10){spawnFar(wpick([['walker',4],['runner',2],['thrower',2],['fat',1]]));this.spawnT=rand(3.5,6);}}};
+}});
+// ---------- 13. «Мультимедіа»: Дашкевич ----------
+MISSIONS.push({id:'castle',col:'#5a1020',roof:'#4a2a5a',setup(G){
+ const L=vLevel(1500,3600,0.3);L.roads.push({x:520,y:0,w:170,h:3600});puddlesOn(L,{x:520,y:0,w:170,h:3600},6);
+ L.pave.push({x:700,y:300,w:170,h:3000,col:'#8a8270'});
+ for(let y=400;y<3300;y+=450){addP(L,{type:'lamp',x:720,y});}
+ treesAround(L,22,[[20,60,480,3500],[1180,60,1480,3500]]);
+ L.landmark={x:1250,y:-2400};
+ finishLevel(L);G.level=L;placeP(G,605,3460);
+ addProp(()=>makeCastle3(13,150),1000,1800,{solid:[260,3000]});
+ stdLoot(G,[['drink',640,3000],['med',640,2300],['molotov',640,1700],['drink',640,1100],['med',640,700]]);lootSpread(G,[['butt',605,2600],['butt',605,1400]]);
+ for(let y=3050;y>700;y-=470){const n=y<1300?3:2;for(let k=0;k<n;k++){const z=spawnZombie('nalysnyk',780+rand(-20,30),y+rand(-60,60));z.guard={x:z.x,y:z.y};}}
+ if(hasCar()){v4car(605,3420);G.car.in=true;}
+ let boss=null;
+ G.m={st:0,spawnT:8,
+  target(){return this.st===0?{x:830,y:540}:boss&&!boss.dead?{x:boss.x,y:boss.y}:null;},
+  objective(){return this.st===0?t('o_cas0'):boss.dead?t('o_boss_dead'):t('o_cas1',Math.ceil(boss.hp/boss.maxHp*100));},
+  onKill(z){if(z===boss){G.noDrops=true;for(const o of G.zombies)if(!o.dead)o.burn=99;G.shake=20;moneyBurst(z.x,z.y,300,8);toast(t('t_dashk_dead'),2600);win(t('w_castle'));}},
+  update(dt){if(G.result)return;const p=G.player;v4npcs(dt);
+   if(this.st===0&&dist(p.x,p.y,830,540)<260){this.st=1;boss=spawnZombie('dashk',820,540);G.alarm=8;for(const z of G.zombies)if(z.type==='nalysnyk')z.alert=true;spawnGroup('nalysnyk',800,700,3,60).forEach(z=>z.alert=true);toast(t('t_dashk_come'),3000);say([t('d_da0'),t('d_da1'),t('d_da2')]);SFX.whistle(820,540);}
+   this.spawnT-=dt;if(this.st===0&&this.spawnT<=0&&alive()<12){spawnFar(wpick([['walker',3],['runner',2]]));this.spawnT=rand(6,9);}}};
+}});
+
+// ================= v4 VISUALS + UI: crate, items, NPC sync, minimap, journal, region map, shop =================
+// ---- better crate (planks, metal corners, nails); marked dog crate gets paint, paw sign, "!" and glow ring ----
+makeCrate3=function(o){const g=new THREE.Group();const wood=PBM('#b08850',{roughness:0.85}),dark=PBM('#7a5a32',{roughness:0.9}),met=PBM('#5a5e64',{metalness:0.7,roughness:0.4});
+ const P=PB();P.add(rboxG(1.36,1.16,1.36,0.03,1),wood,0,0.6,0);
+ for(const s of [1,-1]){for(const y of [0.12,1.08])P.add(rboxG(1.42,0.14,0.08,0.02,1),dark,0,y,s*0.69).add(rboxG(0.08,0.14,1.42,0.02,1),dark,s*0.69,y,0);
+  P.add(rboxG(0.1,1.0,0.08,0.02,1),dark,0,0.6,s*0.7,0,0,s*0.82).add(rboxG(0.08,1.0,0.1,0.02,1),dark,s*0.7,0.6,0,s*0.82,0,0);}
+ for(const x of [1,-1])for(const z of [1,-1])for(const y of [0.08,1.12])P.add(rboxG(0.2,0.2,0.2,0.02,1),met,x*0.66,y,z*0.66);
+ for(let k=0;k<4;k++)P.add(rboxG(1.38,0.012,0.012,0.004,1),PBM('#4a3420'),0,0.36+k*0.24,0.684);
+ pbBuild(P,'crate4',g,null,true);
+ if(o&&o.marked){const red=PBM('#d63a2a',{roughness:0.6,emissive:0x330800});
+  for(const s of [1,-1]){const pw=new THREE.Group();mesh(new THREE.CircleGeometry(0.2,16),red,0,0,0,pw,false);for(let k=0;k<4;k++)mesh(new THREE.CircleGeometry(0.075,10),red,(k-1.5)*0.15,0.24+(k%3===0?-0.04:0.03),0,pw,false);pw.position.set(0,0.62,s*0.705);if(s<0)pw.rotation.y=Math.PI;g.add(pw);
+   const pw2=pw.clone();pw2.position.set(s*0.705,0.62,0);pw2.rotation.y=s*Math.PI/2;g.add(pw2);}
+  const ex=new THREE.Sprite(new THREE.SpriteMaterial({map:textTex('!',128,128,'rgba(214,58,42,0.95)','#fff'),transparent:true,depthTest:false}));ex.scale.set(1.1,1.1,1);ex.position.y=2.6;ex.renderOrder=6;g.add(ex);g.userData.ex=ex;
+  const lab=new THREE.Sprite(new THREE.SpriteMaterial({map:textTex(t('dog_crate_lbl'),512,96,'rgba(0,0,0,0.7)','#ffd23f'),transparent:true,depthTest:false}));lab.scale.set(4.2,0.8,1);lab.position.y=3.6;lab.renderOrder=6;g.add(lab);
+  const ring=mesh(new THREE.RingGeometry(1.2,1.5,32),new THREE.MeshBasicMaterial({color:0xffd23f,transparent:true,opacity:0.7,side:THREE.DoubleSide,depthWrite:false}),0,0.06,0,g,false);ring.rotation.x=-Math.PI/2;g.userData.ring=ring;}
+ return g;};
+// ---- quest items ----
+function makeItem3(kind){const g=new THREE.Group();const inner=new THREE.Group();g.add(inner);
+ if(kind==='jar'){mesh(latheG('jar4',[[0,0],[0.2,0],[0.24,0.08],[0.24,0.4],[0.16,0.5],[0.15,0.56],[0,0.56]],16),PBM('#c03a4a',{roughness:0.15,transparent:true,opacity:0.85}),0,0,0,inner);mesh(cylG(0.17,0.17,0.08,14),PBM('#c8a040',{metalness:0.6,roughness:0.3}),0,0.6,0,inner);}
+ else if(kind==='keys'){const m=PBM('#d4c070',{metalness:0.85,roughness:0.25});mesh(torG(0.12,0.03,6,16),m,0,0.3,0,inner);mesh(rboxG(0.05,0.4,0.03,0.01),m,0.05,0.05,0,inner).rotation.z=0.3;mesh(rboxG(0.05,0.32,0.03,0.01),m,-0.06,0.08,0,inner).rotation.z=-0.4;}
+ else if(kind==='wheel'){const w=wheelV3(0.36,0.24,0,0.36,0,inner);w.rotation.z=Math.PI/2;w.position.y=0.3;}
+ else if(kind==='battery'){mesh(rboxG(0.5,0.36,0.3,0.03),PBM('#1e1e22',{roughness:0.5}),0,0.18,0,inner);mesh(rboxG(0.52,0.06,0.32,0.02),PBM('#c03030'),0,0.38,0,inner);for(const x of [0.15,-0.15])mesh(cylG(0.04,0.04,0.08,8),PBM('#b0b4b8',{metalness:0.8}),x,0.44,0,inner);}
+ else if(kind==='carb'){const m=PBM('#a0a4a8',{metalness:0.8,roughness:0.3});mesh(rboxG(0.34,0.3,0.3,0.06),m,0,0.2,0,inner);mesh(cylG(0.12,0.14,0.2,12),m,0,0.42,0,inner);mesh(cylG(0.05,0.05,0.3,8),m,0.25,0.2,0,inner).rotation.z=Math.PI/2;}
+ const glow=mesh(new THREE.PlaneGeometry(2.2,2.2),new THREE.MeshBasicMaterial({map:circleTex(),color:0xffd040,transparent:true,opacity:0.6,blending:THREE.AdditiveBlending,depthWrite:false}),0,0.05,0,g,false);glow.rotation.x=-Math.PI/2;
+ inner.scale.setScalar(1.7);g.userData.inner=inner;g.traverse(m=>{if(m.isMesh&&m!==glow)m.castShadow=true;});return g;}
+function makeDisc3(){const g=new THREE.Group();const m=mesh(cylG(0.36,0.36,0.03,24),PBM('#e8d070',{metalness:0.95,roughness:0.12,emissive:0x302000}),0,0,0,g,false);mesh(cylG(0.08,0.08,0.035,12),PBM('#222'),0,0,0,g,false);return g;}
+// ---- weapon models for rifle / bat / axe ----
+const _wv3=weaponsV3;weaponsV3=function(r){const W=_wv3(r);const wood=PBM('#7a4a22',{roughness:0.55}),dark=PBM('#2a2c30',{metalness:0.7,roughness:0.35}),steel=PBM('#c9d0d6',{metalness:0.9,roughness:0.22});
+ const rf=PB();rf.add(cylG(0.016,0.016,0.9,8),dark,0,0.05,0.62,Math.PI/2).add(rboxG(0.05,0.07,0.5,0.02),wood,0,0.02,0.3).add(rboxG(0.05,0.12,0.3,0.03),wood,0,-0.02,-0.08,-0.15).add(cylG(0.025,0.025,0.22,8),dark,0,0.1,0.3,Math.PI/2).add(rboxG(0.03,0.04,0.05,0.01),dark,0,0.03,0.12);
+ const bt=PB();bt.add(latheG('bat4',[[0,0],[0.022,0],[0.02,0.25],[0.03,0.45],[0.045,0.75],[0.04,0.8],[0,0.81]],12),PBM('#c8a070',{roughness:0.5}),0,0,-0.08,Math.PI/2).add(cylG(0.026,0.026,0.1,10),PBM('#222',{roughness:0.8}),0,0,-0.03,Math.PI/2);
+ const ax=PB();ax.add(cylG(0.02,0.022,0.62,8),wood,0,0,0.2,Math.PI/2);const sh=new THREE.Shape();sh.moveTo(0,0);sh.lineTo(0.06,0);sh.quadraticCurveTo(0.2,-0.02,0.2,-0.12);sh.lineTo(0.2,0.1);sh.quadraticCurveTo(0.18,0.05,0.06,0.06);sh.lineTo(0,0.06);sh.closePath();
+ const hg=V3.G.axeh||(V3.G.axeh=new THREE.ExtrudeGeometry(sh,{depth:0.02,bevelEnabled:true,bevelThickness:0.006,bevelSize:0.006,bevelSegments:1}));ax.add(hg,steel,0.0,-0.03,0.48,Math.PI/2,0,-Math.PI/2);
+ for(const [k,pb] of [['rifle',rf],['bat',bt],['axe',ax]]){const gr=new THREE.Group();pbBuild(pb,'W4'+k,gr,null);W[k]=gr;}return W;};
+// ---- pretty houses: gutters, downpipes, corner trims, carved window pediments, flower boxes ----
+const _hata4=makeHata3;makeHata3=function(w,d,h,o){const g=_hata4(w,d,h,o);if(lowQ())return g;const n=Math.max(1,Math.floor(w/2.8));const hs=(d+0.9)/2;
+ const P=PB();const gut=PBM('#8d949a',{metalness:0.6,roughness:0.35}),trim=PBM('#f0ece2',{roughness:0.7}),carve=PBM('#7a4a2a',{roughness:0.7}),fl=[PBM('#e04050'),PBM('#f0c030'),PBM('#e070c0')],leaf=PBM('#3a8a3a');
+ for(const s of [1,-1]){P.add(cylG(0.07,0.07,w+0.7,8,true,0,Math.PI),gut,0,h-0.08,s*(hs+0.04),0,0,Math.PI/2);for(const x of [1,-1])P.add(cylG(0.045,0.045,h-0.2,8),gut,x*(w/2+0.25),h/2-0.05,s*(hs-0.02));}
+ for(const x of [1,-1])for(const z of [1,-1])P.add(rboxG(0.16,h-0.5,0.16,0.03,1),trim,x*(w/2+0.01),h/2+0.2,z*(d/2+0.01));
+ const winY=h*0.58;for(let i=0;i<n;i++){const x=-w/2+(i+0.5)*w/n;if(Math.abs(x)<0.9)continue;const z=d/2+0.06;
+  P.add(rboxG(0.72,0.08,0.06,0.02,1),carve,x-0.3,winY+0.8,z,0,0,0.38).add(rboxG(0.72,0.08,0.06,0.02,1),carve,x+0.3,winY+0.8,z,0,0,-0.38).add(sphG(0.06,8,6),carve,x,winY+0.97,z)
+   .add(rboxG(1.2,0.22,0.24,0.04,1),carve,x,winY-0.82,z+0.12);for(let k=0;k<4;k++)P.add(sphG(0.07,8,6),fl[k%3],x-0.42+k*0.28,winY-0.66,z+0.14).add(sphG(0.09,8,6),leaf,x-0.42+k*0.28,winY-0.72,z+0.12);}
+ pbBuild(P,'hx4|'+[w,d,h,n].join('|'),g,null,true);return g;};
+// ---- per-frame visuals (wrap sync2) ----
+const _sync4=sync2;sync2=function(dt){_sync4(dt);const g=G,p=g.player;
+ for(const pr of (g.v4p||[])){const m=vreg(pr,'vis',o=>{const q=o.mk();q.position.set(o.x*U,0,o.y*U);q.rotation.y=o.rot||0;if(!o.hill)q.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});return q;});if(pr.hill)m.position.y=-0.02;}
+ for(const n of (g.v4n||[])){const r=vreg(n,'vis',o=>(NPCMK[o.kind]||makeVillagerRig)());r.g.visible=!n.gone;if(n.gone)continue;r.g.position.set(n.x*U,hillH(n.x,n.y),n.y*U);
+  const d=dist(p.x,p.y,n.x,n.y);const want=d<300?faceAngle(Math.atan2(p.y-n.y,p.x-n.x)):faceAngle(n.face);r.g.rotation.y=rotTo(r.g.rotation.y,want,1-Math.exp(-dt*5));
+  r.armR.rotation.set(n.lab==='talk'||n.lab==='give'?-2.6+Math.sin(T*6)*0.35:Math.sin(T*1.3+n.x)*0.06,0,n.lab==='talk'||n.lab==='give'?-0.3:-0.07);r.armL.rotation.x=Math.sin(T*1.1+n.y)*0.06;
+  r.head.rotation.y=Math.sin(T*0.8+n.x)*0.25;}
+ for(const it of (g.v4it||[])){if(it.taken)continue;const m=vreg(it,'vis',o=>makeItem3(o.kind));it.t+=dt;m.position.set(it.x*U,hillH(it.x,it.y)+0.3+Math.sin(it.t*3)*0.12,it.y*U);m.userData.inner.rotation.y=it.t*1.6;}
+ if(g.car){const c=g.car,m=vreg(c,'vis',()=>makeLada3('#c8b07a'));m.position.set(c.x*U,0,c.y*U);m.rotation.y=faceAngle(c.a);for(const w of m.userData.wheels||[])w.rotation.x=c.wheel*U/0.36;
+  m.children[0].position.y=c.in&&Math.abs(c.spd)>20?Math.sin(T*30)*0.015:0;if(c.broken&&Math.random()<0.25)part({t:'poof',x:c.x+Math.cos(c.a)*40,y:c.y+Math.sin(c.a)*40,z:40,vx:rand(-10,10),vy:rand(-10,10),vz:30,life:1.2,s:9});
+  p.vis.g.visible=!c.in;}else p.vis.g.visible=true;
+ if(g.v4wreck){const m=vreg(g.v4wreck,'vis',()=>{const q=makeMoped3();q.rotation.set(0,faceAngle(g.v4wreck.a),Math.PI/2.3);q.position.y=0.35;q.traverse(c=>{if(c.isMesh)c.material=M('#2b211c');});return q;});m.position.x=g.v4wreck.x*U;m.position.z=g.v4wreck.y*U;}
+ for(const q of (g.v4proj||[])){const m=vreg(q,'vis',makeDisc3);m.position.set(q.x*U,1.4,q.y*U);m.rotation.y+=dt*20;m.rotation.x=0.3;}
+ for(const w of (g.v4waves||[])){const m=vreg(w,'vis',()=>{const q=mesh(new THREE.RingGeometry(0.8,1.0,40),new THREE.MeshBasicMaterial({color:0xffe0a0,transparent:true,opacity:0.8,side:THREE.DoubleSide,depthWrite:false}),0,0,0,null,false);q.rotation.x=-Math.PI/2;return q;});m.position.set(w.x*U,0.15,w.y*U);m.scale.setScalar(1+w.t*9);m.material.opacity=0.8*(1-w.t/0.8);}
+ if(g.v4flash){const f=g.v4flash,m=vreg(f,'vis',()=>mesh(new THREE.SphereGeometry(1,16,12),new THREE.MeshBasicMaterial({color:0xffb040,transparent:true,opacity:0.8,blending:THREE.AdditiveBlending,depthWrite:false}),0,0,0,null,false));m.position.set(f.x*U,1.2,f.y*U);m.scale.setScalar(0.5+f.t*5);m.material.opacity=0.85*(1-f.t/0.7);}
+ if(g.dogCrate&&g.dogCrate.vis&&!g.dogCrate.broken){const u=g.dogCrate.vis.userData;if(u.ex){u.ex.position.y=2.6+Math.abs(Math.sin(T*4))*0.4;u.ring.material.opacity=0.45+0.35*Math.sin(T*5);u.ring.scale.setScalar(1+0.08*Math.sin(T*5));}}
+ // bat / axe swing pose
+ const wid=WEAPONS[p.wi].id,v=p.vis;if(V4MELEE[wid]){const sw=p.meleeT>0?Math.sin((1-p.meleeT/0.22)*Math.PI):0;v.armR.rotation.set(-1.9+sw*1.6,0,-0.2+sw*0.9);v.armL.rotation.set(-1.2+sw*0.8,0,0.5);v.holder.rotation.x=Math.PI/2;if(v.torso)v.torso.rotation.y=-sw*0.5;}
+ // new enemy animations
+ for(const z of g.zombies){const r=z.vis;if(!r)continue;
+  if(z.type==='melnychuk'){if(!z.walk){r.moped.visible=true;r.body.position.set(0,-0.12,-0.3);r.legL.rotation.x=r.legR.rotation.x=-1.3;r.legL.rotation.z=0.12;r.legR.rotation.z=-0.12;r.armL.rotation.set(-1.15,0,-0.15);r.armR.rotation.set(-1.15,0,0.15);r.torso.rotation.x=0.25;
+    for(const w of r.moped.userData.wheels)w.rotation.x+=dt*(z.st==='ram'?40:z.st==='circle'?18:0);r.g.rotation.z=z.st==='rev'?Math.sin(T*50)*0.03:0;}
+   else{r.moped.visible=false;r.body.position.z=0;r.legL.rotation.z=r.legR.rotation.z=0;r.g.rotation.z=0;if(z.punch>0){const k=1-z.punch/0.6;r.armR.rotation.set(k<0.6?lerp(-0.3,1.2,k/0.6):lerp(1.2,-1.7,Math.min(1,(k-0.6)/0.12)),0,0);r.torso.rotation.y=k<0.6?0.4:-0.4;}else{r.armR.rotation.set(-0.4,0,0);r.torso.rotation.y=0;}r.armL.rotation.set(-0.5,0,0);r.torso.rotation.x=0.1;}}
+  else if(z.type==='pasha'){r.torso.rotation.x=0.08;if(g.grab&&g.grab.z===z){r.armL.rotation.set(-1.5,0,-0.55+Math.sin(T*20)*0.05);r.armR.rotation.set(-1.5,0,0.55);r.torso.rotation.x=0.2;}
+   else if(z.lunge>0){r.armL.rotation.set(-1.6,0,-0.2);r.armR.rotation.set(-1.6,0,0.2);r.torso.rotation.x=0.4;}else if(z.stun>0){r.armL.rotation.set(0.3,0,0.4);r.armR.rotation.set(0.3,0,-0.4);r.head.rotation.z=Math.sin(T*8)*0.3;}
+   else if(z.punch>0){const k=1-z.punch/0.4;r.armR.rotation.set(k<0.5?-0.5:-1.6,0,0);}else{const s=Math.sin(z.walkT*7);r.armR.rotation.set(s*0.5-0.3,0,0);r.armL.rotation.set(-s*0.5-0.3,0,0);r.head.rotation.z=0;}}
+  else if(z.type==='nalysnyk'){const s=Math.sin(z.walkT*7);r.torso.rotation.x=0.05;if(z.guard&&!z.alert){r.armR.rotation.set(0.05,0,-0.1);r.armL.rotation.set(0.05,0,0.1);}
+   else if(z.punch>0){const k=1-z.punch/0.38;r.armR.rotation.set(k<0.55?-0.4:-1.65,0,0.1);r.armL.rotation.set(-0.9,0,0);r.torso.rotation.y=k<0.55?0.3:-0.3;}else{r.armR.rotation.set(-0.9+s*0.2,0,0);r.armL.rotation.set(-0.9-s*0.2,0,0);r.torso.rotation.y=0;}}
+  else if(z.type==='dashk'){const s=Math.sin(z.walkT*7);r.torso.rotation.x=0.05;
+   if(z.slam>0){const k=1-z.slam/0.9;const up=k<0.7;r.armL.rotation.set(up?lerp(0,-3,k/0.7):lerp(-3,-0.9,Math.min(1,(k-0.7)/0.1)),0,-0.2);r.armR.rotation.copy(r.armL.rotation);r.armR.rotation.z=0.2;r.torso.rotation.x=up?-0.15:0.4;}
+   else if(z.disc>0){const k=1-z.disc/0.6;r.armR.rotation.set(-1.2,0,k<0.6?1.2:-0.8);}else{r.armR.rotation.set(s*0.35,0,0);r.armL.rotation.set(-s*0.35,0,0);}}
+  else if(z.type==='shepherd'&&r.dog){const u=r.dog.userData,ph=z.walkT*9;u.legs.forEach((l,k)=>l.rotation.x=z.dead?0:Math.sin(ph+(k%2?Math.PI:0)+(k>1?Math.PI/2:0))*0.6);u.tail.rotation.y=Math.sin(T*12)*0.5;u.b.position.z=(z.biteA||0)>0?0.25:0;}}
+ // terrain height on the hill
+ if(g.v4hills){p.vis.g.position.y=hillH(p.x,p.y);for(const z of g.zombies)if(z.vis)z.vis.g.position.y+=hillH(z.x,z.y);if(g.dog&&g.dog.vis)g.dog.vis.position.y=hillH(g.dog.x,g.dog.y);for(const k of g.pickups)if(k.vis)k.vis.position.y+=hillH(k.x,k.y);}
+};
+// ---- overlay: NPC labels, quest markers, grab prompt, minimap ----
+const _dov4=drawOverlay;drawOverlay=function(){_dov4();if(!G||!(state==='play'||state==='pause'))return;const c=octx,g=G,p=g.player;c.textAlign='center';c.textBaseline='middle';
+ for(const n of (g.v4n||[])){if(n.gone)continue;const s=proj(n.x,n.y,hillH(n.x,n.y)/U+92);if(s.z>1)continue;c.font='bold 12px sans-serif';const nm=t(n.name||'n_'+n.kind);const w=c.measureText(nm).width+14;
+  c.fillStyle='rgba(0,0,0,.65)';rr(c,s.x-w/2,s.y-9,w,18,8);c.fill();c.fillStyle='#9fe8ff';c.fillText(nm,s.x,s.y);
+  if(n.lab==='talk'||n.lab==='give'){const y=s.y-26+Math.sin(T*5)*3;c.fillStyle='#ffd23f';c.beginPath();c.arc(s.x,y,12,0,7);c.fill();c.fillStyle='#000';c.font='bold 17px sans-serif';c.fillText(n.lab==='give'?'?':'!',s.x,y+1);}
+  else if(n.lab==='buy'){c.fillStyle='rgba(30,120,40,.9)';rr(c,s.x-30,s.y-34,60,18,8);c.fill();c.fillStyle='#fff';c.font='bold 11px sans-serif';c.fillText('🍾 25 '+t('cur_s'),s.x,s.y-25);}}
+ if(g.car&&!g.car.in&&!g.car.locked){const s=proj(g.car.x,g.car.y,70);if(s.z<1){c.font='bold 12px sans-serif';c.fillStyle='rgba(0,0,0,.6)';rr(c,s.x-44,s.y-9,88,18,8);c.fill();c.fillStyle='#ffd23f';c.fillText('🚗 '+t('car_lbl'),s.x,s.y);}}
+ if(g.grab){const k=g.grab.n/g.grab.need;const bw=Math.min(W*0.7,320),bx=(W-bw)/2,by=H*0.32;c.fillStyle='rgba(0,0,0,.75)';rr(c,bx-10,by-34,bw+20,64,12);c.fill();
+  c.fillStyle='#fff';c.font='bold '+(18+Math.sin(T*16)*2)+'px sans-serif';c.fillText(t('grab_mash'),W/2,by-14);c.fillStyle='#600';c.fillRect(bx,by+4,bw,14);c.fillStyle='#ffd23f';c.fillRect(bx,by+4,bw*k,14);}
+ // minimap (map markers)
+ const L=g.level;const S=Math.min(118,W*0.28),mx=W-S-8,my=W>H?56:96;const sc=S/Math.max(L.w,L.h),ox=mx+(S-L.w*sc)/2,oy=my+(S-L.h*sc)/2;
+ c.save();c.globalAlpha=0.9;c.fillStyle='rgba(20,30,20,.78)';rr(c,mx-4,my-4,S+8,S+8,10);c.fill();c.strokeStyle='#ffd23f';c.lineWidth=1.5;c.stroke();
+ c.fillStyle='#3d5a2a';c.fillRect(ox,oy,L.w*sc,L.h*sc);c.fillStyle='#8a7a5a';for(const r of L.roads)c.fillRect(ox+r.x*sc,oy+r.y*sc,Math.max(1,r.w*sc),Math.max(1,r.h*sc));
+ c.fillStyle='#1e1e1e';for(const b of L.buildings)c.fillRect(ox+b.x*sc,oy+b.y*sc,Math.max(1.5,b.w*sc),Math.max(1.5,b.h*sc));
+ for(const pr of (g.v4p||[]))if(pr.solid){c.fillStyle='#5a3a6a';c.fillRect(ox+(pr.x-pr.solid[0]/2)*sc,oy+(pr.y-pr.solid[1]/2)*sc,Math.max(2,pr.solid[0]*sc),Math.max(2,pr.solid[1]*sc));}
+ for(const h of (g.v4hills||[])){c.fillStyle='rgba(140,190,90,.8)';c.beginPath();c.arc(ox+h.x*sc,oy+h.y*sc,h.r*sc,0,7);c.fill();}
+ const dot=(x,y,r,col)=>{c.fillStyle=col;c.beginPath();c.arc(ox+x*sc,oy+y*sc,r,0,7);c.fill();};
+ for(const z of g.zombies)if(!z.dead)dot(z.x,z.y,z.big?3.5:1.6,z.big?'#ff2020':'#e05050');
+ for(const it of (g.v4it||[]))if(!it.taken)dot(it.x,it.y,3,'#ffd23f');
+ for(const n of (g.v4n||[]))if(!n.gone)dot(n.x,n.y,3.2,n.kind==='vasyl'?'#50e070':'#5ad0ff');
+ if(g.car)dot(g.car.x,g.car.y,3,'#ffffff');
+ if(g.dogCrate&&!g.dogCrate.broken){const x=ox+g.dogCrate.x*sc,y=oy+g.dogCrate.y*sc;c.fillStyle='#ff6a20';c.beginPath();c.arc(x,y,4.5+Math.sin(T*6),0,7);c.fill();c.fillStyle='#fff';c.font='bold 8px sans-serif';c.fillText('🐾',x,y-9);}
+ const tg=g.m.target&&g.m.target();if(tg){const x=ox+tg.x*sc,y=oy+tg.y*sc;c.strokeStyle='#ffd23f';c.lineWidth=2;c.beginPath();c.arc(x,y,5+Math.sin(T*5)*1.5,0,7);c.stroke();}
+ c.save();c.translate(ox+p.x*sc,oy+p.y*sc);c.rotate(p.aim);c.fillStyle='#fff';c.beginPath();c.moveTo(6,0);c.lineTo(-4,-4);c.lineTo(-4,4);c.closePath();c.fill();c.restore();
+ c.restore();};
+// ---- HTML: buttons, journal, region map ----
+(function(){const css=document.createElement('style');css.textContent=`
+#v4bar{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 40px);display:none;justify-content:center;gap:8px;z-index:9;flex-wrap:wrap;pointer-events:none}
+#v4bar.on{display:flex}#v4bar .btn{pointer-events:auto;margin:0;min-width:0;padding:10px 14px;font-size:15px}
+#v4bar .shopb{background:linear-gradient(#5ad0ff,#1f7ab5);color:#fff;animation:v4pulse 1.4s infinite}
+@keyframes v4pulse{0%,100%{box-shadow:0 0 0 0 rgba(90,208,255,.7)}50%{box-shadow:0 0 0 8px rgba(90,208,255,0)}}
+#bJour{position:absolute;right:58px;top:calc(env(safe-area-inset-top) + 6px);pointer-events:auto;z-index:3;width:42px;height:38px;border-radius:10px;border:2px solid #000;background:#ffd23f;font-size:20px}
+#jourScr,#regionScr{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:40}
+#jourScr.on,#regionScr.on{display:flex}
+#jourScr .panel,#regionScr .panel{max-width:560px;width:94vw;max-height:88vh;overflow:auto}
+.jq{display:flex;gap:10px;align-items:flex-start;padding:8px;border-bottom:1px solid rgba(255,255,255,.12);text-align:start}.jq b{color:#a0522d}.jq .ic{font-size:20px;min-width:26px;text-align:center}
+.jq.cur{background:rgba(255,210,63,.12);border-radius:8px}.jq small{opacity:.85}.jq.lk{opacity:.5}
+#regCv{width:100%;max-width:520px;aspect-ratio:1.25;display:block;margin:6px auto;border-radius:12px;touch-action:none;cursor:pointer}
+.srow .sic{width:64px;height:40px;flex:none;background:rgba(0,0,0,.25);border-radius:8px;margin-inline-end:8px}
+.srow .sn{flex:1}.shcat{margin:10px 0 4px;color:#c0392b;font-weight:bold;text-align:start}`;document.head.appendChild(css);
+ const bar=document.createElement('div');bar.id='v4bar';bar.innerHTML='<button class="btn s shopb" id="bShopTop"></button><button class="btn s g" id="bRegion"></button><button class="btn s" id="bJournal"></button>';document.body.appendChild(bar);
+ const jb=document.createElement('button');jb.id='bJour';jb.textContent='📜';$('topbar').appendChild(jb);
+ const js=document.createElement('div');js.id='jourScr';js.innerHTML='<div class="panel xpp"><h2 id="jourTitle"></h2><div id="jourCur" class="st"></div><div id="jourList"></div><div style="text-align:center"><button class="btn s b" id="bJourClose"></button></div></div>';document.body.appendChild(js);
+ const rs=document.createElement('div');rs.id='regionScr';rs.innerHTML='<div class="panel xpp"><h2 id="regTitle"></h2><p id="regHint" class="say"></p><canvas id="regCv" width="520" height="416"></canvas><div style="text-align:center"><button class="btn s b" id="bRegClose"></button></div></div>';document.body.appendChild(rs);
+ const on=(id,f)=>$(id).addEventListener('click',e=>{e.stopPropagation();SFX.init();f();});
+ on('bShopTop',()=>openShop());on('bRegion',()=>openRegion());on('bJournal',()=>openJournal());
+ jb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();openJournal();});
+ on('bJourClose',()=>closeJournal());on('bRegClose',()=>{$('regionScr').classList.remove('on');});
+ $('regCv').addEventListener('click',e=>{const cv=$('regCv'),b=cv.getBoundingClientRect();regionTap((e.clientX-b.left)/b.width*cv.width,(e.clientY-b.top)/b.height*cv.height);});})();
+let jourWasPlay=false;
+function qStatus(i){if(save.done.includes(i))return 'done';if(i===6)return save.done.includes(12)?'open':'lock';if(i===7)return save.crossed?'open':'lock';if(i<6)return i<save.unlocked?'open':'lock';return v4unlocked(i)?'open':'lock';}
+function openJournal(){SFX.ui();jourWasPlay=state==='play';if(jourWasPlay)showScreen('pause');$('jourTitle').textContent=t('jour_title');$('bJourClose').textContent=t('back');
+ $('jourCur').textContent=G&&(state==='pause')?t('jour_now')+': '+t('m'+G.mission+'_name')+' — '+G.m.objective():'';
+ const L2=$('jourList');L2.innerHTML='';let curSet=false;
+ for(const i of QORDER){const st=qStatus(i);const d=document.createElement('div');const cur=!curSet&&st==='open';if(cur)curSet=true;d.className='jq'+(cur?' cur':'')+(st==='lock'?' lk':'');
+  d.innerHTML='<div class="ic">'+(st==='done'?'✅':st==='open'?'▶️':'🔒')+'</div><div><b>'+t('m'+i+'_name')+'</b> <small>('+t('loc_'+i)+')</small><br><small>'+(st==='lock'?t(i===6?'need_dash':'jour_lock'):t('m'+i+'_desc'))+'</small></div>';
+  if(st!=='lock')d.addEventListener('click',()=>{if(state==='pause')return;closeJournal();openDlg(i);});L2.appendChild(d);}
+ $('jourScr').classList.add('on');}
+function closeJournal(){$('jourScr').classList.remove('on');if(jourWasPlay&&state==='pause'){jourWasPlay=false;showScreen('play');}}
+// region map
+const REG=[{id:'chep',x:0.46,y:0.6,m:null},{id:'hill',x:0.33,y:0.42,m:8},{id:'gord',x:0.15,y:0.22,m:9},{id:'maly',x:0.55,y:0.18,m:10},{id:'ruk',x:0.85,y:0.32,m:11},{id:'castle',x:0.78,y:0.7,m:12},{id:'border',x:0.42,y:0.9,m:6}];
+const REGE=[['chep','hill'],['hill','gord'],['gord','maly'],['maly','ruk'],['ruk','castle'],['castle','chep'],['chep','border'],['hill','maly']];
+function openRegion(){SFX.ui();$('regTitle').textContent=t('reg_title');$('regHint').textContent=hasCar()?t('reg_car'):t('reg_hint');$('bRegClose').textContent=t('back');$('regionScr').classList.add('on');drawRegion();}
+function drawRegion(){const cv=$('regCv'),c=cv.getContext('2d'),w=cv.width,h=cv.height;const gr=c.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#6f8f4a');gr.addColorStop(1,'#4f6f34');c.fillStyle=gr;c.fillRect(0,0,w,h);
+ for(let i=0;i<70;i++){c.fillStyle='rgba(30,70,20,.35)';c.beginPath();c.arc((i*97)%w,(i*53+i*i)%h,6+(i%5)*3,0,7);c.fill();}
+ c.strokeStyle='rgba(90,140,200,.8)';c.lineWidth=6;c.beginPath();c.moveTo(0,h*0.78);c.bezierCurveTo(w*0.3,h*0.7,w*0.6,h*0.95,w,h*0.84);c.stroke();
+ const P=id=>REG.find(r=>r.id===id);c.lineCap='round';
+ for(const [a,b] of REGE){const A=P(a),B=P(b);c.strokeStyle='#d8c08a';c.lineWidth=7;c.beginPath();c.moveTo(A.x*w,A.y*h);c.lineTo(B.x*w,B.y*h);c.stroke();c.strokeStyle='rgba(90,60,30,.6)';c.lineWidth=1.5;c.setLineDash([6,6]);c.stroke();c.setLineDash([]);}
+ c.fillStyle='rgba(255,255,255,.12)';c.fillRect(0,h*0.94,w,h*0.06);c.fillStyle='#fff';c.font='bold 12px sans-serif';c.textAlign='center';c.fillText('ROMÂNIA ↓',w*0.42,h*0.985);
+ // tower of «5 хатка»
+ c.fillStyle='#b9b4aa';c.fillRect(w*0.66,h*0.52,14,46);c.fillStyle='#ffd23f';c.font='bold 11px sans-serif';c.fillText(t('reg_tower'),w*0.67,h*0.5);
+ for(const r of REG){const st=r.m===null?'open':qStatus(r.m);const x=r.x*w,y=r.y*h;c.fillStyle=st==='done'?'#5fcf5f':st==='open'?'#ffd23f':'#888';c.strokeStyle='#000';c.lineWidth=3;c.beginPath();c.arc(x,y,r.m===null?20:16,0,7);c.fill();c.stroke();
+  c.fillStyle='#000';c.font='bold 15px sans-serif';c.fillText(r.m===null?'🏠':st==='done'?'✓':st==='open'?'!':'🔒',x,y+5);
+  const lb=t('reg_'+r.id);c.font='bold 13px sans-serif';const tw=c.measureText(lb).width+12;c.fillStyle='rgba(0,0,0,.7)';rr(c,x-tw/2,y+20,tw,18,6);c.fill();c.fillStyle='#fff';c.fillText(lb,x,y+33);}
+ if(hasCar()){const A=P('chep');c.font='22px sans-serif';c.fillText('🚗',A.x*w+30,A.y*h-14);}
+ const sh=P('chep');c.fillStyle='#5ad0ff';c.font='bold 12px sans-serif';c.fillText('🛒 '+t('shop_title'),sh.x*w,sh.y*h-28);}
+function regionTap(x,y){const cv=$('regCv'),w=cv.width,h=cv.height;for(const r of REG){if(dist(x,y,r.x*w,r.y*h)<30){$('regionScr').classList.remove('on');if(r.m===null){if(dist(x,y,r.x*w,r.y*h-28)<14)openShop();else showScreen('street');}else openDlg(r.m);return;}}
+ const sh=REG[0];if(Math.abs(x-sh.x*w)<70&&Math.abs(y-(sh.y*h-28))<12){$('regionScr').classList.remove('on');openShop();}}
+// screen hooks
+const _ss4=showScreen;showScreen=function(s){_ss4(s);const b=$('v4bar');if(b){b.classList.toggle('on',s==='street');$('bShopTop').textContent='🛒 '+t('btn_shop');$('bRegion').textContent='🗺 '+t('btn_region');$('bJournal').textContent='📜 '+t('btn_journal');}
+ if(s!=='pause'&&s!=='street'&&s!=='dlg')$('jourScr').classList.remove('on');if(s==='play')$('regionScr').classList.remove('on');};
+// dialogs for new missions + border lock
+const _od4=openDlg;openDlg=function(i){if(i==='region'){openRegion();return;}_od4(i);if(i>=8||i===6){const st=$('dlgState');let locked=false;
+  if(i>=8){$('dlgTitle').textContent=t('loc_'+i)+': '+t('m'+i+'_name');if(!v4unlocked(i)){locked=true;st.className='lk';st.textContent=i===12&&save.done.includes(10)&&!hasCar()?t('need_car'):t('jour_lock');}
+   else if(save.done.includes(i)){st.className='st';st.textContent=t('replay',Math.round(REWARD[i]/2));}else{st.className='st';st.textContent=t('reward',REWARD[i])+(i===12?'  •  🚗 '+t('by_car'):'');}}
+  else if(i===6&&!save.done.includes(12)&&!save.crossed){locked=true;st.className='lk';st.textContent=t('need_dash');}
+  $('bPlay').style.display=locked?'none':'';}};
+const _sh4=showEnd;showEnd=function(){_sh4();if(G&&G.result==='win'&&curMission>=8){const nx=QORDER[QORDER.indexOf(curMission)+1];if(curMission===11)toast(t('t_car_got'),3000);}};
+// street: big shop marker + signpost to region
+const _bs4=buildStreet;buildStreet=function(){_bs4.apply(this,arguments);const S=ST;if(!S||S.v4)return;S.v4=1;const sc=S.scene;
+ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:textTex('🛒 '+t('shop_big'),768,120,'rgba(31,122,181,0.92)','#fff'),transparent:true,depthTest:false}));sp.scale.set(7.5,1.2,1);sp.position.set(5.6,8.4,16.8);sp.renderOrder=6;sp.userData.mission='shop';sc.add(sp);S.houses.push(sp);S.shopSp=sp;
+ const ring=mesh(new THREE.RingGeometry(3.6,4.2,40),new THREE.MeshBasicMaterial({color:0x5ad0ff,transparent:true,opacity:0.7,side:THREE.DoubleSide,depthWrite:false}),6.2,0.08,17.6,sc,false);ring.rotation.x=-Math.PI/2;S.shopRing=ring;
+ const pst=makeSignpost3([t('reg_gord'),t('reg_maly'),t('reg_ruk'),t('reg_castle')]);pst.position.set(-3.4,0,-24);pst.scale.setScalar(1.3);sc.add(pst);pst.userData.mission='region';S.houses.push(pst);
+ const rl=new THREE.Sprite(new THREE.SpriteMaterial({map:textTex('🗺 '+t('btn_region'),512,110,'rgba(0,0,0,0.72)','#9fe8ff'),transparent:true,depthTest:false}));rl.scale.set(5,1.1,1);rl.position.set(-3.4,6.4,-24);rl.renderOrder=5;rl.userData.mission='region';sc.add(rl);S.houses.push(rl);
+ const hill=makeHill3(9,2.2);hill.position.set(-17,0,-12);sc.add(hill);};
+const _us4=updateStreet;updateStreet=function(dt){_us4(dt);const S=ST;if(S&&S.shopRing){S.shopRing.material.opacity=0.45+0.3*Math.sin(T*4);S.shopSp.position.y=8.4+Math.sin(T*3)*0.25;}};
+const _pk4=progKey;progKey=function(){return _pk4()+'|v4'+save.done.length;};
+// ---- icons for new weapons + shop goods ----
+const _wsh4=weaponShape;weaponShape=function(c,id,tt){
+ if(id==='rifle'){c.fillStyle='#7a4a22';c.beginPath();c.moveTo(-6,-1.5);c.lineTo(10,-2);c.lineTo(10,2);c.lineTo(-5,4);c.closePath();c.fill();c.fillStyle='#2a2a2a';c.fillRect(9,-2.6,24,1.8);c.fillStyle='#111';c.fillRect(10,-5,9,2);c.fillStyle='#3a3a3a';c.fillRect(13,-0.8,4,4);}
+ else if(id==='bat'){c.fillStyle='#c8a070';c.beginPath();c.moveTo(-2,-0.9);c.lineTo(10,-1.2);c.quadraticCurveTo(26,-3.6,28,-2.4);c.lineTo(28,2.4);c.quadraticCurveTo(26,3.6,10,1.2);c.lineTo(-2,0.9);c.closePath();c.fill();c.fillStyle='#222';c.fillRect(-3,-1.3,5,2.6);}
+ else if(id==='axe'){c.fillStyle='#7a4a22';rr(c,-3,-1,28,2.2,1);c.fill();c.fillStyle='#c9d0d6';c.beginPath();c.moveTo(18,-1);c.lineTo(18,-4);c.quadraticCurveTo(24,-9,27,-8);c.lineTo(27,4);c.quadraticCurveTo(24,5,22,1.2);c.closePath();c.fill();c.strokeStyle='#666';c.lineWidth=0.5;c.stroke();}
+ else if(id==='ammobox'){c.fillStyle='#4a5a2a';rr(c,2,-5,20,11,1.5);c.fill();c.fillStyle='#ffd23f';c.font='bold 5px sans-serif';c.textAlign='center';c.fillText('AMMO',12,1.5);c.fillStyle='#c8a040';for(let i=0;i<4;i++)rr(c,4+i*4.5,-9,2.4,5,1),c.fill();}
+ else if(id==='medkit'){c.fillStyle='#f4f4f4';rr(c,3,-6,18,12,2);c.fill();c.fillStyle='#e53935';c.fillRect(10.5,-4.5,3,9);c.fillRect(7.5,-1.5,9,3);}
+ else if(id==='drinks'){for(const [x,col] of [[6,'#3a8a3a'],[14,'#7a4a1a']]){c.fillStyle=col;rr(c,x-3,-3,6,10,2);c.fill();c.fillRect(x-1.2,-8,2.4,5);}}
+ else if(id==='armor'){c.fillStyle='#3a4a3a';c.beginPath();c.moveTo(5,-7);c.lineTo(19,-7);c.lineTo(21,-2);c.lineTo(19,8);c.lineTo(5,8);c.lineTo(3,-2);c.closePath();c.fill();c.fillStyle='#5a6a5a';c.fillRect(7,-3,10,7);c.strokeStyle='#222';c.lineWidth=0.8;c.strokeRect(7,-3,10,7);}
+ else if(id==='dmg'){c.fillStyle='#e53935';c.beginPath();c.moveTo(12,-8);c.lineTo(16,-1);c.lineTo(13,-1);c.lineTo(15,8);c.lineTo(8,0);c.lineTo(11,0);c.closePath();c.fill();}
+ else if(id==='hp'){c.fillStyle='#e53935';c.beginPath();c.moveTo(12,7);c.bezierCurveTo(0,-1,5,-9,12,-3);c.bezierCurveTo(19,-9,24,-1,12,7);c.fill();}
+ else if(id==='ammo'){c.fillStyle='#c8a040';for(let i=0;i<5;i++){rr(c,3+i*4,-4,2.8,10,1);c.fill();}c.fillStyle='#8a6a20';for(let i=0;i<5;i++)c.fillRect(3+i*4,4,2.8,2);}
+ else if(id==='ants'){c.fillStyle='#cfe8f0';rr(c,4,-7,16,14,2);c.fill();c.fillStyle='#b08a55';c.fillRect(5,0,14,6);c.fillStyle='#1a1a1a';for(const [x,y] of [[9,-3],[14,-1],[11,2]]){c.beginPath();c.arc(x,y,1.2,0,7);c.fill();}}
+ else _wsh4(c,id,tt);};
+SHOP.length=0;SHOP.push(
+ {id:'pistol',k:'w',price:150,cat:'c_guns'},{id:'shotgun',k:'w',price:300,cat:'c_guns'},{id:'smg',k:'w',price:500,cat:'c_guns'},{id:'rifle',k:'w',price:650,cat:'c_guns'},
+ {id:'bat',k:'w',price:90,cat:'c_melee'},{id:'axe',k:'w',price:180,cat:'c_melee'},
+ {id:'molotov',k:'kit',price:90,n:3,cat:'c_supply'},{id:'ammobox',k:'kit',price:70,n:1,cat:'c_supply'},{id:'medkit',k:'kit',price:120,n:1,cat:'c_supply'},{id:'drinks',k:'kit',price:40,n:2,cat:'c_supply'},
+ {id:'armor',k:'up',price:250,max:3,cat:'c_up'},{id:'dmg',k:'up',price:200,max:3,cat:'c_up'},{id:'hp',k:'up',price:180,max:3,cat:'c_up'},{id:'ammo',k:'up',price:120,max:2,cat:'c_up'},{id:'ants',k:'up',price:150,max:2,cat:'c_up'});
+renderShop=function(){const L2=$('shopList');L2.innerHTML='';$('shopMoney').textContent=t('wallet',save.money);let cat='';
+ for(const it of SHOP){if(it.cat!==cat){cat=it.cat;const h=document.createElement('div');h.className='shcat';h.textContent=t(cat);L2.appendChild(h);}
+  const row=document.createElement('div');row.className='srow';const st=shopState(it);const have=it.k==='kit'?((save.kit&&save.kit[it.id])||0):0;const lvl=it.k==='up'?' ('+upL(it.id)+'/'+it.max+')':have?' ×'+have:'';
+  const price=it.k==='up'?it.price*(upL(it.id)+1):it.price;const cv=document.createElement('canvas');cv.width=96;cv.height=60;cv.className='sic';drawIcon(cv,it.id,true);row.appendChild(cv);
+  const sn=document.createElement('div');sn.className='sn';sn.innerHTML='<b>'+t('s_'+it.id)+lvl+'</b><br><small>'+t('sd_'+it.id)+'</small>';row.appendChild(sn);
+  const b=document.createElement('button');b.className='btn s '+(st?'':'g');b.textContent=st==='own'?t('owned'):st==='max'?t('maxed'):price+' '+t('cur_s');b.disabled=!!st||save.money<price;
+  b.addEventListener('click',()=>{if(save.money<price||shopState(it))return;save.money-=price;save.owned=save.owned||{};save.up=save.up||{};save.kit=save.kit||{};
+   if(it.k==='w'){save.owned[it.id]=true;}else if(it.k==='kit'){save.kit[it.id]=(save.kit[it.id]||0)+it.n;if(it.id==='molotov')save.owned.molotov=true;}else save.up[it.id]=upL(it.id)+1;
+   persist();SFX.buy();$('kendiSay').textContent=t('kendi_buy'+ri(1,3));renderShop();updWallet();});
+  row.appendChild(b);L2.appendChild(row);}};
+// inventory: hide slots of weapons you don't own (keeps the bar compact on phones)
+const _ui4=updInv;updInv=function(full){_ui4(full);if(!G||!full)return;const p=G.player;WEAPONS.forEach((w,i)=>{const e=invEls[i];if(!e)return;e.d.style.display=(i>=5&&!owned(w.id)&&!(p.ammo[i]>0&&!w.melee))?'none':'';});};
+// mash input from on-screen buttons while choked
+['bFire','bBurn'].forEach(id=>{const b=$(id);if(b)b.addEventListener('pointerdown',()=>{if(G&&G.grab)input.mash=true;});});
+window.SHOWX={mel:makeMelnychuk3,pasha:makePasha3,nal:makeNalysnyk3,dashk:()=>{const r=makeDashkevich3();return r;},bohdan:makeBohdan3,lyalyk:makeLyalyk3,vasyl:makeVasyl3,shep:makeShepherdRig,lada:()=>({g:makeLada3()})};
 
 // ================= LOOP =================
 let lastTs=0;
